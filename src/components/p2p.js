@@ -31,7 +31,7 @@ if (window.location.hash == '#1' || localStorage['proxy'] == 1) {
 
           console.log(j.q)
 
-          axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
+          axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
               console.log(res)
               cpeer.send(JSON.stringify({res}))
           }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});
