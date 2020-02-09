@@ -2,6 +2,7 @@ import React from 'react'
 import axios from 'axios';
 import { Label, Input } from '@rebass/forms'
 import { Box, Button } from "rebass"
+import {getFromWiki} from './p2p'
 
 
 // class Searchbar = (props) => {
@@ -12,19 +13,22 @@ class Searchbar extends React.Component {
         this.handleSubmit=this.handleSubmit.bind(this)
         this.state = {
             title: "",
-            text: "",
+            text: "Kunnamkulam",
             query:""
         }
     }
     handleSubmit = (e) => {
         e.preventDefault();
+
+        getFromWiki(this.state.text)
+        /**
         axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${this.state.text}&prop=text&formatversion=2`).then(res => {
             console.log(res.data)
             this.setState({
                 title: res.data.parse.title,
                 query: res.data.parse.text,
             });
-        }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});
+        }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});*/
     }
     handleChange(e){
         this.setState({text:e.target.value});
@@ -53,7 +57,7 @@ class Searchbar extends React.Component {
                     type='Text'
                     placeholder='Enter Item you want to search'
                     onChange={this.handleChange}
-                    value={this.state.text}
+                    value="Kunnamkulam"
                     className="input is-rounded"
                 />
             </form>
