@@ -16,6 +16,14 @@ class Searchbar extends React.Component {
             text: "Kunnamkulam",
             query:""
         }
+
+        let url=document.URL
+        if (url!=="http://localhost:3000/wiki")
+        {
+            let spli=url.split("/")
+            let spliurl=spli.slice(-1).pop()
+            this.urloli(spliurl)
+        }
     }
     handleSubmit = (e) => {
         e.preventDefault();
@@ -44,15 +52,6 @@ class Searchbar extends React.Component {
         this.setState({text:e});
     }
     render() {
-        let url=document.URL
-        if (url!=="http://localhost:3000/wiki")
-        {
-            let spli=url.split("/")
-            let spliurl=spli.slice(-1).pop()
-            this.urloli(spliurl)
-        }
-        
-
         let createMarkup=(text)=> {
             //console.log(text)
             return {__html:text}
@@ -67,7 +66,7 @@ class Searchbar extends React.Component {
                     type='Text'
                     placeholder='Enter Item you want to search'
                     onChange={this.handleChange}
-                    value="Kunnamkulam"
+                    value={this.state.value}
                     className="input is-rounded"
                 />
             </form>
