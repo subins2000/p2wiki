@@ -1,0 +1,23 @@
+const Discovery = require('torrent-discovery')
+const randombytes = require('randombytes')
+const WebTorrent = require('webtorrent')
+
+
+// Seed the torrent
+var client = new WebTorrent()
+var torrentId = 'magnet:?xt=urn:btih:2af9a2c6425f876d0453d76c788145877993b311&dn=index.js&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com'
+
+//var f = new File(["p2wiki"], "p2wiki");
+
+client.seed('seedfile', {
+    announce: [
+      'wss://tracker.btorrent.xyz',
+      'wss://tracker.openwebtorrent.com'
+    ]
+  }, (torrent) => {
+    console.log(torrent.infoHash)
+
+    torrent.on('wire', function (wire, addr) {
+      console.log('connected to peer with address ' + addr)
+    })
+}) 
