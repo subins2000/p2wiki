@@ -34,14 +34,16 @@ class Searchbar extends React.Component {
         }
     }
     getFromWiki = () => {
-        var that = this
-        getFromWiki(this.state.text, function(res) {
-            res = res.res
-            that.setState({
-                title: res.data.parse.title,
-                query: res.data.parse.text,
-            });
-        })
+        if (this.state.text != '') {
+            var that = this
+            getFromWiki(this.state.text, function(res) {
+                res = res.res
+                that.setState({
+                    title: res.data.parse.title,
+                    query: res.data.parse.text,
+                });
+            })
+        }
     }
     handleSubmit = (e) => {
         e.preventDefault();
