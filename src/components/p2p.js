@@ -6,9 +6,9 @@ const WebTorrent = require('webtorrent')
 var Peer = require('simple-peer')
 
 
-var ppeer, cpeer;
+var ppeer, cpeer, cb;
 
-if (window.location.hash == '#1') {
+if (window.location.hash == '#1' || localStorage['proxy'] == 1) {
   // Proxy
   // Seed the torrent
   var client = new WebTorrent()
@@ -29,14 +29,14 @@ if (window.location.hash == '#1') {
         try {
           var j = JSON.parse(data)
 
-          console.log(j)
+          console.log(j.q)
 
-          axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${this.state.text}&prop=text&formatversion=2`).then(res => {
-              console.log(res.data)
-              cpeer.send(JSON.stringify({d:res.data}))
+          axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
+              console.log(res)
+              cpeer.send(JSON.stringify({res}))
           }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});
         } catch(e) {
-
+          console.log(e)
         }
       })
     })
@@ -81,13 +81,17 @@ if (window.location.hash == '#1') {
       ppeer.on('data', data => {
         // got a data channel message
         console.log('got a message from ppeer: ' + data)
-      })
-
-      
+        try {
+          cb(JSON.parse(data))
+        } catch (e){
+          console.log(e)
+        }
+      }) 
     })
   })
 }
 
-export function getFromWiki(q) {
+export function getFromWiki(q, cb2) {
+  cb = cb2
   ppeer.send(JSON.stringify({'q':q}))
 }

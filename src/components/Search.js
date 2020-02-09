@@ -20,7 +20,14 @@ class Searchbar extends React.Component {
     handleSubmit = (e) => {
         e.preventDefault();
 
-        getFromWiki(this.state.text)
+        var that = this
+        getFromWiki(this.state.text, function(res) {
+            res = res.res
+            that.setState({
+                title: res.data.parse.title,
+                query: res.data.parse.text,
+            });
+        })
         /**
         axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${this.state.text}&prop=text&formatversion=2`).then(res => {
             console.log(res.data)
@@ -34,7 +41,7 @@ class Searchbar extends React.Component {
         this.setState({text:e.target.value});
     }
     urloli(e){
-        this.setState({text:e}); 
+        this.setState({text:e});
     }
     render() {
         let url=document.URL
