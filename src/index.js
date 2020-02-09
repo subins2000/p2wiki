@@ -15,14 +15,25 @@ if (location.hash == '#1') {
   client.seed(f, (torrent) => {
     console.log(torrent.infoHash)
 
-    torrent.on('wire', function (wire, addr) {
-      console.log('connected to peer with address ' + addr)
+    torrent.on('upload', function (b) {
+      console.log('connected to peer with address ')
+      console.log(torrent)
 
+      var ppeer = torrent._peers[Object.keys(torrent._peers)[0]].conn
+
+      ppeer.on('data', data => {
+        // got a data channel message
+        console.log('got a message from cpeer: ' + data)
+      })
+
+      ppeer.on('connect', function() {
+        ppeer.send('adsfdsffdsfdsfdsfsdfdsfdsdsfdsf')
+      })
     })
   })
 } else {
   const opts = {
-    infoHash: '2af9a2c6425f876d0453d76c788145877993b311',
+    infoHash: '62f753362edbfcc2f59593a050bf271d20dec9d2',
     peerId: randombytes(20),
     announce: [
       'wss://tracker.btorrent.xyz',
@@ -30,6 +41,7 @@ if (location.hash == '#1') {
     ]
   }
 
+  /**
   discovery = new Discovery(opts)
   discovery.on('peer', (peer, source) => {
     console.log(peer)
@@ -39,12 +51,34 @@ if (location.hash == '#1') {
     })
 
     mepeer.on('signal', data => {
-      // when peer1 has signaling data, give it to peer2 somehow
+      // when cpeer has signaling data, give it to ppeer somehow
       peer.signal(data)
     })
 
     mepeer.on('connect', () => {
-      peer.send('hey peer2, how is it going?')
+      peer.send('hey ppeer, how is it going?')
+    })
+  })*/
+
+  var torrentId = 'magnet:?xt=urn:btih:62f753362edbfcc2f59593a050bf271d20dec9d2&dn=index.js&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com'
+  var client = new WebTorrent()
+  client.add(torrentId, function(torrent) {
+    torrent.on('download', function (b) {
+      console.log('connected to peer with address ')
+      console.log(torrent)
+
+      var cpeer = torrent._peers[Object.keys(torrent._peers)[0]].conn
+
+      cpeer.on('data', data => {
+        // got a data channel message
+        console.log('got a message from ppeer: ' + data)
+      })
+
+      cpeer.on('connect', function() {
+        cpeer.send('a')
+      })
+
+      cpeer.send('aaaaa')
     })
   })
 }
