@@ -30,15 +30,18 @@ class Searchbar extends React.Component {
         this.setState({text:e.target.value});
     }
     urloli(e){
-        // this.setState({text:e});
-        this.state.text = e;
+        this.setState({text:e}); 
     }
     render() {
         let url=document.URL
-        let spli=url.split("/")
-        let spliurl=spli.slice(-1).pop()
+        if (url!=="http://localhost:3000/wiki")
+        {
+            let spli=url.split("/")
+            let spliurl=spli.slice(-1).pop()
+            this.urloli(spliurl)
+        }
         
-        this.urloli(spliurl)
+
         let createMarkup=(text)=> {
             //console.log(text)
             return {__html:text}
