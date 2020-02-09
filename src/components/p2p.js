@@ -16,29 +16,37 @@ if (window.location.hash == '#1' || localStorage['proxy'] == 1) {
 
   var f = new File(["p2wiki"], "p2wiki");
 
+  var binded_conns = []
+
   client.seed(f, (torrent) => {
     console.log(torrent.infoHash)
 
     torrent.on('upload', function (b) {
-      var cpeer = torrent._peers[Object.keys(torrent._peers)[0]].conn
+      var ks = Object.keys(torrent._peers)
+      for (var i = 0; i < ks.length; i++) {
+        var cpeer = torrent._peers[ks[i]].conn
 
-      cpeer.on('data', data => {
-        // got a data channel message
-        console.log('got a message from cpeer: ' + data)
+        if (typeof binded_conns[cpeer] == 'undefined') {
+          cpeer.on('data', data => {
+            // got a data channel message
+            console.log('got a message from cpeer: ' + data)
 
-        try {
-          var j = JSON.parse(data)
+            try {
+              var j = JSON.parse(data)
 
-          console.log(j.q)
+              console.log(j.q)
 
-          axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
-              console.log(res)
-              cpeer.send(JSON.stringify({res}))
-          }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});
-        } catch(e) {
-          console.log(e)
+              axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
+                  console.log(res)
+                  cpeer.send(JSON.stringify({res}))
+              }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});
+            } catch(e) {
+              console.log(e)
+            }
+          })
+          binded_conns[cpeer] = 1
         }
-      })
+      }
     })
   })
 } else {
