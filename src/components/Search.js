@@ -13,21 +13,27 @@ class Searchbar extends React.Component {
         this.handleSubmit=this.handleSubmit.bind(this)
         this.state = {
             title: "",
-            text: "Kunnamkulam",
+            text: "",
             query:""
         }
 
-        let url=document.URL
-        if (url!=="http://localhost:3000/wiki")
-        {
-            let spli=url.split("/")
-            let spliurl=spli.slice(-1).pop()
-            this.urloli(spliurl)
+        
+        if (window.location.hash != '#1' && localStorage['proxy'] != 1) {
+            var that = this
+            setTimeout(function() {
+                let url=document.URL
+                if (url!=="http://localhost:3000/wiki")
+                {
+                    let spli=url.split("/")
+                    let spliurl=spli.slice(-1).pop()
+
+                    that.urloli(spliurl)
+                }
+                that.getFromWiki()
+            }, 5000)
         }
     }
-    handleSubmit = (e) => {
-        e.preventDefault();
-
+    getFromWiki = () => {
         var that = this
         getFromWiki(this.state.text, function(res) {
             res = res.res
@@ -36,6 +42,11 @@ class Searchbar extends React.Component {
                 query: res.data.parse.text,
             });
         })
+    }
+    handleSubmit = (e) => {
+        e.preventDefault();
+
+        this.getFromWiki()
         /**
         axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${this.state.text}&prop=text&formatversion=2`).then(res => {
             console.log(res.data)
