@@ -20,59 +20,80 @@ function setStatus(msg) {
   console.log(full)
 }
 
+function sendToPeer(peer, type, data) {
+  if (typeof data === 'undefined') {
+    data = {}
+  }
+  peer.send(JSON.stringify({
+    type: type,
+    data: data
+  }));
+}
+
 /**
  * Be a proxy in the network
  */
 export function startProxy() {
   // Proxy
   // Seed the torrent
-  const client = new WebTorrent()
+  
 
   setStatus('Acting as proxy')
 
-  var f = new File(["p2wiki"], "p2wiki");
+  axios.get('a.png', {
+    responseType: 'blob'
+  }).then(function(response) {
+    var f = new File([response.data], "p2wiki", {
+      type: 'image/jpeg'
+    });
 
-  var binded_conns = []
+    var binded_conns = []
 
-  client.seed(f, (torrent) => {
-    console.log(torrent.infoHash)
+    const client = new WebTorrent()
+    client.seed(f, (torrent) => {
+      console.log(torrent.infoHash)
 
-    torrent.on('upload', function (b) {
-      var ks = Object.keys(torrent._peers),
-          client_peer,
-          j;
+      torrent.on('upload', function (b) {
+        var ks = Object.keys(torrent._peers),
+            client_peer,
+            j;
 
-      for (var i = 0; i < ks.length; i++) {
-        client_peer = torrent._peers[ks[i]].conn
+        for (var i = 0; i < ks.length; i++) {
+          client_peer = torrent._peers[ks[i]].conn
 
-        if (typeof binded_conns[client_peer] === 'undefined') {
-          client_peer.on('data', data => {
-            // got a data channel message
-            console.log('got a message from client_peer: ' + data)
+          if (typeof binded_conns[client_peer] === 'undefined') {
+            client_peer.on('data', data => {
+              // got a data channel message
+              console.log('got a message from client_peer: ' + data)
 
-            try {
-              var j = JSON.parse(data)
+              try {
+                var j = JSON.parse(data)
 
-              console.log(j.q)
+                console.log(j)
 
-              axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
-                  console.log(res)
-                  client_peer.send(JSON.stringify({res}))
-              }).catch((err)=>{
-                console.log(err)
-                alert("Not Found- Try with a more Specific Title")
-              });
-            } catch(e) {
-              console.log(e)
-            }
-          })
-          binded_conns[client_peer] = 1
+                if (j.type === 'ping') {
+                  sendToPeer(client_peer, 'pong');
+                } else {
+                  axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
+                      console.log(res)
+                      client_peer.send(JSON.stringify({res}))
+                  }).catch((err)=>{
+                    console.log(err)
+                    alert("Not Found- Try with a more Specific Title")
+                  });
+                }
+              } catch(e) {
+                console.log(e)
+              }
+            })
+            binded_conns[client_peer] = 1
 
-          setStatus()
+            setStatus()
+          }
         }
-      }
+      })
     })
-  })
+  });
 }
 
 
@@ -82,24 +103,34 @@ export function startProxy() {
 export function startClient() {
   setStatus('Finding peers...');
 
-  const client = new WebTorrent()
+  const client = new WebTorrent({
+    store: function(a) {
+      console.log(a)
+    }
+  })
 
   function findPeers() {
-    const p2wikiNetworkIdentifierMagnet = 'magnet:?xt=urn:btih:62f753362edbfcc2f59593a050bf271d20dec9d2&dn=index.js&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com'
+    const p2wikiNetworkIdentifierMagnet = 'magnet:?xt=urn:btih:ad213daf1caa13aafe3b33f52e3dadea8e1a7b31&dn=index.js&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com'
 
     client.add(p2wikiNetworkIdentifierMagnet, function(torrent) {
       torrent.on('download', function (b) {
-        proxy_peers = torrent._peers
+        for (var k in torrent._peers) {
+          torrent._peers[k].conn.on('data', data => {
+            try {
+              var j = JSON.parse(data)
+
+              if (j.type === 'pong') {
+                proxy_peers[k] = torrent._peers[k].conn
+              }
+              setStatus()
+            } catch {
+
+            }
+          })
+          sendToPeer(torrent._peers[k].conn, 'ping')
+        }
         setStatus()
       })
-
-      // Don't seed
-      torrent.on('done', function() {
-        torrent.destroy(function() {
-          // try to find peers in 5 seconds
-          setTimeout(findPeers, 5000)
-        })
-      });
     })
   }
   findPeers()
@@ -114,7 +145,7 @@ function randomIntFromInterval(min, max) { // min and max included
 
 function getAProxyPeer() {
   var keys = Object.keys(proxy_peers)
-  var peer = proxy_peers[keys[randomIntFromInterval(0, keys.length)]]
+  var peer = proxy_peers[keys[randomIntFromInterval(0, keys.length - 1)]]
   if (peer) {
     return peer;
   } else {
@@ -130,12 +161,10 @@ export function getFromWiki(q, cb) {
   var proxy_peer = getAProxyPeer()
 
   console.log(proxy_peers)
-  console.log(proxy_peer)
 
   if (proxy_peer === null) {
     //cb()
   } else {
-    proxy_peer = proxy_peer.conn
     proxy_peer.on('data', data => {
       // got a data channel message
       console.log('got a message from proxy_peer: ' + data)
@@ -146,9 +175,7 @@ export function getFromWiki(q, cb) {
       }
     })
 
+    sendToPeer(proxy_peer, 'q', q)
     // Request
-    proxy_peer.send(JSON.stringify(
-      {'q':q}
-    ))
   }
 }
