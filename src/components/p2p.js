@@ -1,18 +1,34 @@
 import axios from 'axios';
 
-const Discovery = require('torrent-discovery')
-const randombytes = require('randombytes')
 const WebTorrent = require('webtorrent')
-var Peer = require('simple-peer')
 
+var proxy_peers = {},
+    status_callback = function(){};
 
-var ppeer, cpeer, cb;
+export function setStatusCallback(cb) {
+  status_callback = cb
+}
 
-if (window.location.hash == '#1' || localStorage['proxy'] == 1) {
+var lastMsg = ''
+function setStatus(msg) {
+  if (msg !== undefined)
+    lastMsg = msg
+
+  var full = 'Peers: ' + Object.keys(proxy_peers).length
+  full += '<br/>' + lastMsg
+  status_callback(full)
+  console.log(full)
+}
+
+/**
+ * Be a proxy in the network
+ */
+export function startProxy() {
   // Proxy
   // Seed the torrent
-  var client = new WebTorrent()
-  var torrentId = 'magnet:?xt=urn:btih:f7e976f25eaa67ed5da4ef2aa864ddb6f6924e5b&dn=index.js&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com'
+  const client = new WebTorrent()
+
+  setStatus('Acting as proxy')
 
   var f = new File(["p2wiki"], "p2wiki");
 
@@ -22,14 +38,17 @@ if (window.location.hash == '#1' || localStorage['proxy'] == 1) {
     console.log(torrent.infoHash)
 
     torrent.on('upload', function (b) {
-      var ks = Object.keys(torrent._peers)
-      for (var i = 0; i < ks.length; i++) {
-        var cpeer = torrent._peers[ks[i]].conn
+      var ks = Object.keys(torrent._peers),
+          client_peer,
+          j;
 
-        if (typeof binded_conns[cpeer] == 'undefined') {
-          cpeer.on('data', data => {
+      for (var i = 0; i < ks.length; i++) {
+        client_peer = torrent._peers[ks[i]].conn
+
+        if (typeof binded_conns[client_peer] === 'undefined') {
+          client_peer.on('data', data => {
             // got a data channel message
-            console.log('got a message from cpeer: ' + data)
+            console.log('got a message from client_peer: ' + data)
 
             try {
               var j = JSON.parse(data)
@@ -38,68 +57,98 @@ if (window.location.hash == '#1' || localStorage['proxy'] == 1) {
 
               axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
                   console.log(res)
-                  cpeer.send(JSON.stringify({res}))
-              }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});
+                  client_peer.send(JSON.stringify({res}))
+              }).catch((err)=>{
+                console.log(err)
+                alert("Not Found- Try with a more Specific Title")
+              });
             } catch(e) {
               console.log(e)
             }
           })
-          binded_conns[cpeer] = 1
+          binded_conns[client_peer] = 1
+
+          setStatus()
         }
       }
     })
   })
-} else {
-  const opts = {
-    infoHash: '62f753362edbfcc2f59593a050bf271d20dec9d2',
-    peerId: randombytes(20),
-    announce: [
-      'wss://tracker.btorrent.xyz',
-      'wss://tracker.openwebtorrent.com'
-    ]
-  }
-
-  /**
-  discovery = new Discovery(opts)
-  discovery.on('peer', (peer, source) => {
-    console.log(peer)
-
-    var mepeer = new Peer({
-      initiator: true
-    })
-
-    mepeer.on('signal', data => {
-      // when ppeer has signaling data, give it to ppeer somehow
-      peer.signal(data)
-    })
-
-    mepeer.on('connect', () => {
-      peer.send('hey ppeer, how is it going?')
-    })
-  })*/
-
-  var torrentId = 'magnet:?xt=urn:btih:62f753362edbfcc2f59593a050bf271d20dec9d2&dn=index.js&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com'
-
-  var client = new WebTorrent()
-
-  client.add(torrentId, function(torrent) {
-    torrent.on('download', function (b) {
-      ppeer = torrent._peers[Object.keys(torrent._peers)[0]].conn
-
-      ppeer.on('data', data => {
-        // got a data channel message
-        console.log('got a message from ppeer: ' + data)
-        try {
-          cb(JSON.parse(data))
-        } catch (e){
-          console.log(e)
-        }
-      }) 
-    })
-  })
 }
 
-export function getFromWiki(q, cb2) {
-  cb = cb2
-  ppeer.send(JSON.stringify({'q':q}))
+
+/**
+ * Be a client in the network and get proxy peers
+ */
+export function startClient() {
+  setStatus('Finding peers...');
+
+  const client = new WebTorrent()
+
+  function findPeers() {
+    const p2wikiNetworkIdentifierMagnet = 'magnet:?xt=urn:btih:62f753362edbfcc2f59593a050bf271d20dec9d2&dn=index.js&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com'
+
+    client.add(p2wikiNetworkIdentifierMagnet, function(torrent) {
+      torrent.on('download', function (b) {
+        proxy_peers = torrent._peers
+        setStatus()
+      })
+
+      // Don't seed
+      torrent.on('done', function() {
+        torrent.destroy(function() {
+          // try to find peers in 5 seconds
+          setTimeout(findPeers, 5000)
+        })
+      });
+    })
+  }
+  findPeers()
+}
+
+/**
+ * https://stackoverflow.com/a/7228322/1372424
+ */
+function randomIntFromInterval(min, max) { // min and max included 
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function getAProxyPeer() {
+  var keys = Object.keys(proxy_peers)
+  var peer = proxy_peers[keys[randomIntFromInterval(0, keys.length)]]
+  if (peer) {
+    return peer;
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Find a proxy peer and request wiki page
+ * @param String q Article query
+ */
+export function getFromWiki(q, cb) {
+  var proxy_peer = getAProxyPeer()
+
+  console.log(proxy_peers)
+  console.log(proxy_peer)
+
+  if (proxy_peer === null) {
+    //cb()
+  } else {
+    proxy_peer = proxy_peer.conn
+    proxy_peer.on('data', data => {
+      // got a data channel message
+      console.log('got a message from proxy_peer: ' + data)
+      try {
+        cb(JSON.parse(data))
+      } catch (e){
+        console.log(e)
+      }
+    })
+
+    // Request
+    proxy_peer.send(JSON.stringify(
+      {'q':q}
+    ))
+  }
 }

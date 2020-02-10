@@ -1,8 +1,6 @@
 import React from 'react'
-import axios from 'axios';
 import { Label, Input } from '@rebass/forms'
-import { Box, Button } from "rebass"
-import {getFromWiki} from './p2p'
+import {startClient, startProxy, getFromWiki, setStatusCallback} from './p2p'
 
 
 // class Searchbar = (props) => {
@@ -13,13 +11,18 @@ class Searchbar extends React.Component {
         this.handleSubmit=this.handleSubmit.bind(this)
         this.state = {
             title: "",
-            text: "",
-            query:""
+            text: "Kerala",
+            query: "",
+            status: ""
         }
 
-        
-        if (window.location.hash != '#1' && localStorage['proxy'] != 1) {
-            var that = this
+        var that = this
+
+        setStatusCallback(function(msg) {
+            that.state.status = msg
+        })
+
+        if (window.location.hash !== '#1' && localStorage['proxy'] !== 1) {
             setTimeout(function() {
                 let url=document.URL
                 if (url!=="http://localhost:3000/wiki")
@@ -31,10 +34,14 @@ class Searchbar extends React.Component {
                 }
                 that.getFromWiki()
             }, 5000)
+
+            startClient()
+        } else {
+            startProxy()
         }
     }
     getFromWiki = () => {
-        if (this.state.text != '') {
+        if (this.state.text !== '') {
             var that = this
             getFromWiki(this.state.text, function(res) {
                 res = res.res
@@ -70,6 +77,8 @@ class Searchbar extends React.Component {
             return {__html:text}
         }
         return (
+        <>
+        <div id='status' dangerouslySetInnerHTML={createMarkup(this.state.status)}></div><br/>
         <div style={{ align: `center` }}>
             <form onSubmit={this.handleSubmit}>
                 <Label htmlFor='text'>Search</Label>
@@ -87,7 +96,9 @@ class Searchbar extends React.Component {
             <div className="container is-fluid " >
             <div  dangerouslySetInnerHTML={createMarkup(this.state.query)}/>
             </div>
-        </div>);
+        </div>
+        </>
+        );
     }
 }
 export default Searchbar
