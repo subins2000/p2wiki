@@ -73,8 +73,8 @@ class Searchbar extends React.Component {
         <div className="text-center md:flex md:items-center mb-6">
             
             <form className="w-full max-w-sm" onSubmit={this.handleSubmit}>
-            <div className="md:w-2/3">
-                <Label className="text-2xl block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" htmlFor='Text'>Search</Label>
+            <div className=" p-8 md:w-4/3">
+                <Label className=" text-2xl text-gray-600 font-bold mb-1 md:mb-0 pr-4" htmlFor='Text'>Search for Wikipedia Articles</Label>
                 <input
                     id='Search'
                     name='Search'
@@ -82,7 +82,7 @@ class Searchbar extends React.Component {
                     placeholder='🔍 Search'
                     onChange={this.handleChange}
                     value={this.state.value}
-                    class="text-4xl bg-gray-200 appearance-none border-4 border-gray-200 rounded  py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-red-500"
+                    className=" text-4xl bg-gray-200 appearance-none border-4 border-gray-200 rounded  py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-red-500"
                 />
                 </div>
             </form>
