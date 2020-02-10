@@ -8,11 +8,9 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "axios": "^0.19.2",
-    "bulma": "^0.8.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-scripts": "3.3.1",
-    "rebass": "^4.0.7",
     "simple-peer": "^9.6.2",
     "torrent-discovery": "^9.2.1",
     "webtorrent": "^0.107.17"
