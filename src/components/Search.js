@@ -1,9 +1,12 @@
 import React from 'react'
 //import axios from 'axios';
-import { Label, Input } from '@rebass/forms'
-//import { Box, Button } from "rebass"
+import { Label } from '@rebass/forms'
+import createDOMPurify from 'dompurify'
 import {getFromWiki} from './p2p'
+import { JSDOM } from 'jsdom'
 
+const window = (new JSDOM('')).window
+const DOMPurify = createDOMPurify(window)
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
@@ -65,10 +68,6 @@ class Searchbar extends React.Component {
         this.setState({text:e});
     }
     render() {
-        let createMarkup=(text)=> {
-            //console.log(text)
-            return {__html:text}
-        }
         return (
         <div className="text-center md:flex md:items-center mb-6">
             
@@ -88,7 +87,7 @@ class Searchbar extends React.Component {
             </form>
             <h1 className="title">{this.state.title}</h1>
             <div className="container is-fluid " >
-            <div  dangerouslySetInnerHTML={createMarkup(this.state.query)}/>
+            <div  dangerouslySetInnerHTML={{__html:DOMPurify.sanitize(this.state.query)}}/>
             </div>
         </div>);
     }
