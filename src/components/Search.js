@@ -37,7 +37,6 @@ class Searchbar extends React.Component {
         if (this.state.text !== '') {
             var that = this
             getFromWiki(this.state.text, function(res) {
-                res = res.res
                 that.setState({
                     title: res.data.parse.title,
                     query: res.data.parse.text,
@@ -47,6 +46,7 @@ class Searchbar extends React.Component {
     }
     handleSubmit = (e) => {
         e.preventDefault();
+        console.log(this.state.text)
 
         this.getFromWiki()
         /**
@@ -81,7 +81,7 @@ class Searchbar extends React.Component {
                     type='Text'
                     placeholder='🔍 Search'
                     onChange={this.handleChange}
-                    value={this.state.value}
+                    value={this.state.text}
                     className=" text-4xl bg-gray-200 appearance-none border-4 border-gray-200 rounded  py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-red-500"
                 />
                 </div>
