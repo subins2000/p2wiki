@@ -82,8 +82,8 @@ class Searchbar extends React.Component {
             return {__html:html}
         }
         return (
-        <div className="text-center md:flex md:items-center mb-6">
-            <form className="w-full max-w-sm" onSubmit={this.handleSubmit}>
+        <div>
+            <form className="text-center md:items-center w-full max-w-sm" onSubmit={this.handleSubmit}>
                 <input type="checkbox" id="beAProxy" onChange={this.handleChange} name="beAProxy" checked={this.state.beAProxy} />
                 <label htmlFor="beAProxy">Be A Proxy Peer</label>
             
@@ -100,11 +100,12 @@ class Searchbar extends React.Component {
                     />
                 </div>
             </form>
-            <div className="container is-fluid">
-                <h1 className="title">{this.state.title}</h1>
+            <div className="container mx-auto">
+                <h1 className="title text-4xl">{this.state.title}</h1>
                 <div dangerouslySetInnerHTML={createMarkup(this.state.result)}/>
             </div>
-        </div>);
+        </div>
+        );
     }
 }
 export default Searchbar

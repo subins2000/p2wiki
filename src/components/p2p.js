@@ -38,7 +38,7 @@ if (localStorage.getItem('beAProxy') === "true") {
 
         try {
           var j = JSON.parse(data)
-          axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2`).then(res => {
+          axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${j.q}&prop=text&formatversion=2&origin=*`).then(res => {
             console.log(res)
             peer.send(JSON.stringify(res))
           }).catch((err) => {
