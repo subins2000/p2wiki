@@ -83,24 +83,27 @@ class Searchbar extends React.Component {
     return (
       <div>
         <form onSubmit={this.handleSubmit}>
-          <input
-            type="checkbox"
-            id="beAProxy"
-            onChange={this.handleChange}
-            name="beAProxy"
-            checked={this.state.beAProxy}
-          />
-          <label htmlFor="beAProxy">Be A Proxy Peer</label>
-
-          <div style={{marginTop: '20px'}}>
+          <label class="checkbox">
             <input
-              id="query"
-              type="Text"
-              placeholder="🔍 Search for an article"
+              type="checkbox"
               onChange={this.handleChange}
-              name="query"
-              value={this.state.query}
+              name="beAProxy"
+              checked={this.state.beAProxy}
             />
+            <span style={{marginLeft: '5px'}}>Be a Proxy Peer</span>
+          </label>
+          <div class="field">
+            <div class="control">
+              <input
+                className="input is-rounded"
+                id="query"
+                type="Text"
+                placeholder="🔍 Search for an article"
+                onChange={this.handleChange}
+                name="query"
+                value={this.state.query}
+              />
+            </div>
           </div>
         </form>
         <div className="container mx-auto">
