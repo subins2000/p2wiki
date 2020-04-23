@@ -13,7 +13,7 @@
     "node-sass": "^4.14.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
-    "react-scripts": "3.3.1",
+    "react-scripts": "^3.4.0",
     "simple-peer": "^9.6.2",
     "torrent-discovery": "^9.2.1",
     "webtorrent": "^0.107.17"

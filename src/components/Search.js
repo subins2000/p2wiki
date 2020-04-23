@@ -83,7 +83,7 @@ class Searchbar extends React.Component {
     return (
       <div>
         <form onSubmit={this.handleSubmit}>
-          <label class="checkbox">
+          <label className="checkbox">
             <input
               type="checkbox"
               onChange={this.handleChange}
@@ -92,8 +92,8 @@ class Searchbar extends React.Component {
             />
             <span style={{marginLeft: '5px'}}>Be a Proxy Peer</span>
           </label>
-          <div class="field">
-            <div class="control">
+          <div className="field">
+            <div className="control">
               <input
                 className="input is-rounded"
                 id="query"
