@@ -1,6 +1,6 @@
 import React from "react";
 //import axios from 'axios';
-import { Label } from "@rebass/forms";
+//import { Label } from "@rebass/forms";
 //import { Box, Button } from "rebass"
 import { getFromWiki } from "./p2p";
 
