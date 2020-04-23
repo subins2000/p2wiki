@@ -3,13 +3,11 @@ import axios from 'axios'
 const Discovery = require('torrent-discovery')
 const randombytes = require('randombytes')
 const WebTorrent = require('webtorrent')
-var Wire = require('bittorrent-protocol')
-var Peer = require('simple-peer')
-
-var ppeer, cpeer, cb
 
 const announce = [
-  'ws://127.0.0.1:5000'
+  'wss://tracker.openwebtorrent.com',
+  'wss://tracker.sloppyta.co:443/announce',
+  'wss://tracker.novage.com.ua:443/announce'
 ]
 const infoHash = '62f753362edbfcc2f59593a050bf271d20dec9d2'
 
@@ -19,7 +17,7 @@ const discoveryOpts = {
   announce: announce
 }
 
-if (window.location.hash == '#1' || localStorage.proxy == 1) {
+if (localStorage.getItem('beAProxy') === "true") {
   // Proxy
 
   // Seed the torrent
@@ -56,9 +54,12 @@ if (window.location.hash == '#1' || localStorage.proxy == 1) {
 }
 
 function messagePeer (msg, callback) {
+  var gotPeer = false
   return new Promise(function (resolve, reject) {
     var discovery = new Discovery(discoveryOpts)
     discovery.on('peer', (peer, source) => {
+      if (gotPeer) return
+      
       peer.on('data', data => {
         try {
           var json = JSON.parse(data)
@@ -73,8 +74,10 @@ function messagePeer (msg, callback) {
       })
 
       peer.on('error', err => {
+        gotPeer = false
         reject(Error(err))
       })
+      gotPeer = true
     })
   })
 }

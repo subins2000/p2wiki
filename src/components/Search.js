@@ -1,6 +1,6 @@
 import React from 'react'
 //import axios from 'axios';
-import { Label, Input } from '@rebass/forms'
+import { Label } from '@rebass/forms'
 //import { Box, Button } from "rebass"
 import {getFromWiki} from './p2p'
 
@@ -13,12 +13,14 @@ class Searchbar extends React.Component {
         this.handleSubmit=this.handleSubmit.bind(this)
         this.state = {
             title: "",
-            text: "",
-            query:""
+            query: "",
+            result:"",
+            beAProxy: false
         }
-
         
-        if (window.location.hash !== '#1' && localStorage['proxy'] !== 1) {
+        if (localStorage.getItem('beAProxy') === "true") {
+            this.state.beAProxy = true
+
             var that = this
             setTimeout(function() {
                 let url=document.URL
@@ -34,61 +36,73 @@ class Searchbar extends React.Component {
         }
     }
     getFromWiki = () => {
-        if (this.state.text !== '') {
+        if (this.state.query !== '') {
             var that = this
-            getFromWiki(this.state.text, function(res) {
+            getFromWiki(this.state.query, function(res) {
                 that.setState({
                     title: res.data.parse.title,
-                    query: res.data.parse.text,
+                    result: res.data.parse.text,
                 });
             })
         }
     }
     handleSubmit = (e) => {
         e.preventDefault();
-        console.log(this.state.text)
+        console.log(this.state.query)
 
         this.getFromWiki()
         /**
-        axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${this.state.text}&prop=text&formatversion=2`).then(res => {
+        axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${this.state.query}&prop=query&formatversion=2`).then(res => {
             console.log(res.data)
             this.setState({
                 title: res.data.parse.title,
-                query: res.data.parse.text,
+                result: res.data.parse.query,
             });
         }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});*/
     }
     handleChange(e){
-        this.setState({text:e.target.value});
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        this.setState({
+            [e.target.name]: value
+        });
+
+        if (e.target.name === 'beAProxy') {
+            localStorage.setItem('beAProxy', value)
+            window.location.reload()
+        }
     }
     urloli(e){
-        this.setState({text:e});
+        this.setState({
+            query: e
+        });
     }
     render() {
-        let createMarkup=(text)=> {
-            //console.log(text)
-            return {__html:text}
+        let createMarkup=(html)=> {
+            //console.log(query)
+            return {__html:html}
         }
         return (
         <div className="text-center md:flex md:items-center mb-6">
-            
             <form className="w-full max-w-sm" onSubmit={this.handleSubmit}>
-            <div className=" p-8 md:w-4/3">
-                <Label className=" text-2xl text-gray-600 font-bold mb-1 md:mb-0 pr-4" htmlFor='Text'>Search for Wikipedia Articles</Label>
-                <input
-                    id='Search'
-                    name='Search'
+                <input type="checkbox" id="beAProxy" onChange={this.handleChange} name="beAProxy" checked={this.state.beAProxy} />
+                <label htmlFor="beAProxy">Be A Proxy Peer</label>
+            
+                <div className="w-full max-w-sm">
+                    <Label className="text-2xl text-gray-600 font-bold mb-1 md:mb-0 pr-4" htmlFor='query'>Search for Wikipedia Articles</Label>
+                    <input
+                    id='query'
                     type='Text'
                     placeholder='🔍 Search'
                     onChange={this.handleChange}
-                    value={this.state.text}
+                    name="query"
+                    value={this.state.query}
                     className=" text-4xl bg-gray-200 appearance-none border-4 border-gray-200 rounded  py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-red-500"
-                />
+                    />
                 </div>
             </form>
-            <h1 className="title">{this.state.title}</h1>
-            <div className="container is-fluid " >
-            <div  dangerouslySetInnerHTML={createMarkup(this.state.query)}/>
+            <div className="container is-fluid">
+                <h1 className="title">{this.state.title}</h1>
+                <div dangerouslySetInnerHTML={createMarkup(this.state.result)}/>
             </div>
         </div>);
     }
