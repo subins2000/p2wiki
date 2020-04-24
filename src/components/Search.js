@@ -2,7 +2,7 @@ import React from "react";
 //import axios from 'axios';
 //import { Label } from "@rebass/forms";
 //import { Box, Button } from "rebass"
-import { getFromWiki } from "./p2p";
+import { getFromWiki, msgBind } from "./p2p";
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
@@ -32,6 +32,10 @@ class Searchbar extends React.Component {
         that.getFromWiki();
       }, 5000);
     }
+
+    msgBind((type, msg) => {
+      console.log(type, msg)
+    })
   }
   getFromWiki = () => {
     if (this.state.query !== "") {
