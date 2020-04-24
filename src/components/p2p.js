@@ -36,7 +36,7 @@ if (localStorage.getItem('beAProxy') === "true") {
         // got a data channel message
         console.log('got a message from a client: ' + data)
 
-        if (data === 'p')
+        if (data.toString() === 'p')
           peer.send('p') // Pong
 
         try {
@@ -71,16 +71,22 @@ if (localStorage.getItem('beAProxy') === "true") {
   var discovery = new Discovery(discoveryOpts)
   discovery.on('peer', (peer, source) => {
     peer.on('connect', () => {
-      peers[peer.id] = peer
-      bestPeers.push(peer.id)
-      msgBindCallback('peersCount', Object.keys(peers).length)
-      
       peer.on('data', (data) => {
         console.log('got a message from a proxy: ' + data)
 
-        // Move this "active" peer to last of array
-        // https://stackoverflow.com/a/24909567
-        bestPeers.push(bestPeers.splice(bestPeers.indexOf(peer.id), 1)[0])
+        // Acknowledge pong
+        if (data.toString() === 'p') {
+          if (peers[peer.id] === undefined) {
+            peers[peer.id] = peer
+            bestPeers.push(peer.id)
+
+            msgBindCallback('peersCount', Object.keys(peers).length)
+          }
+
+          // Move this "active" peer to last of array
+          // https://stackoverflow.com/a/24909567
+          bestPeers.push(bestPeers.splice(bestPeers.indexOf(peer.id), 1)[0])
+        }
       })
 
       /**
