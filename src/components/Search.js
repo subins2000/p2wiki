@@ -6,6 +6,8 @@ import { requestArticle, msgBind } from "./p2p";
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
+  retryInterval = null
+
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
@@ -48,7 +50,8 @@ class Searchbar extends React.Component {
       }).catch((err) => {
         if (err === 'nopeer') {
           console.log('nopeer, retrying in 3 seconds')
-          setTimeout(that.getFromWiki, 3000)
+          clearInterval(that.retryInterval)
+          that.retryInterval = setTimeout(that.getFromWiki, 3000)
         }
       })
     }
