@@ -36,7 +36,7 @@ if (localStorage.getItem('beAProxy') === "true") {
         // got a data channel message
         console.log('got a message from a client: ' + data)
 
-        if (data == 'p')
+        if (data === 'p')
           peer.send('p') // Pong
 
         try {
