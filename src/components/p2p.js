@@ -123,14 +123,13 @@ function messagePeer (msg) {
 
     if (!peer) {
       msgBindCallback('search', 'No peers available')
+      reject('nopeer')
     } else {
       peer.on('data', data => {
         try {
           var json = JSON.parse(data)
           resolve(json)
-        } catch (e) {
-          console.log('non JSON data')
-        }
+        } catch (e) {}
       })
       
       peer.send(msg)
@@ -143,14 +142,10 @@ function messagePeer (msg) {
   })
 }
 
-export function getFromWiki (q, callback) {
-  messagePeer(
+export function requestArticle (q) {
+  return messagePeer(
     JSON.stringify({ q: q })
-  ).then(response => {
-    callback(response)
-  }, error => {
-    console.log(error)
-  })
+  )
 }
 
 export function msgBind (callback) {

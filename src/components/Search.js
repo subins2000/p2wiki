@@ -2,7 +2,7 @@ import React from "react";
 //import axios from 'axios';
 //import { Label } from "@rebass/forms";
 //import { Box, Button } from "rebass"
-import { getFromWiki, msgBind } from "./p2p";
+import { requestArticle, msgBind } from "./p2p";
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
@@ -19,35 +19,41 @@ class Searchbar extends React.Component {
 
     if (localStorage.getItem("beAProxy") === "true") {
       this.state.beAProxy = true;
+    }
 
-      var that = this;
+    var that = this,
+        url = document.location.pathname,
+        spli = url.split("/");
+
+    if (spli.length > 2 && spli[spli.length - 2] === 'wiki') {
       setTimeout(function () {
-        let url = document.URL;
-        if (url !== "http://localhost:3000/wiki") {
-          let spli = url.split("/");
-          let spliurl = spli.slice(-1).pop();
-
-          that.urloli(spliurl);
-        }
+        that.urloli(spli[spli.length - 1]);
         that.getFromWiki();
-      }, 5000);
+      }, 1000);
     }
 
     msgBind((type, msg) => {
       console.log(type, msg)
     })
   }
+
   getFromWiki = () => {
     if (this.state.query !== "") {
       var that = this;
-      getFromWiki(this.state.query, function (res) {
+      requestArticle(this.state.query).then(function (res) {
         that.setState({
           title: res.data.parse.title,
           result: res.data.parse.text,
-        });
-      });
+        })
+      }).catch((err) => {
+        if (err === 'nopeer') {
+          console.log('nopeer, retrying in 3 seconds')
+          setTimeout(that.getFromWiki, 3000)
+        }
+      })
     }
-  };
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
     console.log(this.state.query);
