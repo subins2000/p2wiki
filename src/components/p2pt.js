@@ -6,6 +6,7 @@ const WebTorrent = require('webtorrent')
 const EventEmitter = require('events')
 const chunks = require('chunk-stream')
 const str = require('string-to-stream')
+const sha1 = require('simple-sha1')
 
 
 export class P2PT extends EventEmitter {
@@ -16,16 +17,21 @@ export class P2PT extends EventEmitter {
 
   peers = {}
 
-  constructor (announceURLS = [], infoHash = '') {
+  constructor (announceURLS = [], identifierString = '') {
     this.announce.push(announceURLS)
 
-    this.infoHash = infoHash.toLowerCase()
-    this._infoHashBuffer = Buffer.from(this.infoHash, 'hex')
-    this._infoHashBinary = this._infoHashBuffer.toString('binary')
+    if (identifierString)
+      this.setIdentifier(identifierString)
 
     this._peerIdBuffer = randombytes(20)
     this._peerId = this._peerIdBuffer.toString('hex')
     this._peerIdBinary = this._peerIdBuffer.toString('binary')
+  }
+
+  setIdentifier (identifierString) {
+    this.infoHash = sha1.sync(identifierString).toLowerCase()
+    this._infoHashBuffer = Buffer.from(this.infoHash, 'hex')
+    this._infoHashBinary = this._infoHashBuffer.toString('binary')
   }
 
   listen (identifierString) {
@@ -75,6 +81,8 @@ export class P2PT extends EventEmitter {
         $this.removePeer(peer.id)
         console.log('cccaaa')
       })
+
+      $this.emit('peer', peer)
     })
   }
 

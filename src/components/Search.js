@@ -2,7 +2,7 @@ import React from "react";
 //import axios from 'axios';
 //import { Label } from "@rebass/forms";
 //import { Box, Button } from "rebass"
-import { requestArticle, msgBind, P2PT } from "./p2p";
+import { requestArticle, p2Wiki } from "./p2wiki";
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
