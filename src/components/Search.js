@@ -2,7 +2,7 @@ import React from "react";
 //import axios from 'axios';
 //import { Label } from "@rebass/forms";
 //import { Box, Button } from "rebass"
-import { requestArticle, msgBind } from "./p2p";
+import { requestArticle, msgBind, P2PT } from "./p2p";
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
@@ -18,6 +18,18 @@ class Searchbar extends React.Component {
       result: "",
       beAProxy: false,
     };
+
+    var announce = [
+      'ws://localhost:5000',
+      'wss://tracker.openwebtorrent.com',
+      'wss://tracker.sloppyta.co:443/announce',
+      'wss://tracker.novage.com.ua:443/announce',
+    ]
+
+    if (window.location.hostname === 'localhost')
+      announce = ['ws://localhost:5000']
+
+    this.p2pt = new P2PT(announce)
 
     if (localStorage.getItem("beAProxy") === "true") {
       this.state.beAProxy = true;
