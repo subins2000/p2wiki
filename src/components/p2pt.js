@@ -21,10 +21,16 @@ const JSON_MESSAGE_IDENTIFIER = 'p'
 const MAX_MESSAGE_LENGTH = 16000
 
 class P2PT extends EventEmitter {
+  /**
+   *
+   * @param array announceURLs List of announce tracker URLs
+   * @param string identifierString Identifier used to discover peers in the network
+   */
   constructor (announceURLs = [], identifierString = '') {
     super()
 
     this.announceURLs = announceURLs
+    this.trackers = {}
     this.peers = {}
     this.msgChunks = {}
 
@@ -35,6 +41,10 @@ class P2PT extends EventEmitter {
     this._peerIdBinary = this._peerIdBuffer.toString('binary')
   }
 
+  /**
+   * Set the identifier string used to discover peers in the network
+   * @param string identifierString
+   */
   setIdentifier (identifierString) {
     this.identifierString = identifierString
     this.infoHash = sha1.sync(identifierString).toLowerCase()
@@ -42,6 +52,9 @@ class P2PT extends EventEmitter {
     this._infoHashBinary = this._infoHashBuffer.toString('binary')
   }
 
+  /**
+   * Connect to network and start discovering peers
+   */
   start () {
     const $this = this
 
@@ -89,6 +102,10 @@ class P2PT extends EventEmitter {
     this._fetchPeers()
   }
 
+  /**
+   * Remove a peer from the list
+   * @param integer id Peer ID
+   */
   removePeer (id) {
     this.emit('peerclose', id)
     delete this.peers[id]
@@ -96,7 +113,7 @@ class P2PT extends EventEmitter {
 
   /**
    * Send a msg and get response for it
-   * @param SimplePeer peer Peer to send msg to
+   * @param Peer peer simple-peer object to send msg to
    * @param string msg Message to send
    * @param integer msgID ID of message if it's a response to a previous message
    */
@@ -118,6 +135,7 @@ class P2PT extends EventEmitter {
         if (responseData[0] === JSON_MESSAGE_IDENTIFIER) {
           try {
             responseData = JSON.parse(responseData.slice(1))
+
             if (responseData.id === data.id) {
               var chunkHandler = $this._chunkHandler(responseData)
 
@@ -155,16 +173,25 @@ class P2PT extends EventEmitter {
   }
 
   /**
-   * Find new peers
+   * Request more peers
    */
-  search () {
+  requestMorePeers () {
     const $this = this
     return new Promise((resolve) => {
-      this._fetchPeers()
+      for (var key in $this.trackers) {
+        $this.trackers[key].announce({
+          numwant: 50
+        })
+      }
       resolve($this.peers)
     })
   }
 
+  /**
+   * A custom function binded on Peer object to easily respond back to message
+   * @param Peer peer Peer to send msg to
+   * @param integer msgID Message ID
+   */
   _peerRespond (peer, msgID) {
     var $this = this
     return (msg) => {
@@ -191,10 +218,18 @@ class P2PT extends EventEmitter {
     }
   }
 
+  /**
+   * Remove all stored chunks of a particular message
+   * @param integer msgID Message ID
+   */
   _destroyChunks (msgID) {
     delete this.msgChunks[msgID]
   }
 
+  /**
+   * Default announce options
+   * @param object opts Options
+   */
   _defaultAnnounceOpts (opts = {}) {
     if (opts.numwant == null) opts.numwant = 50
 
@@ -204,11 +239,13 @@ class P2PT extends EventEmitter {
     return opts
   }
 
+  /**
+   * Initialize trackers and fetch peers
+   */
   _fetchPeers () {
-    var tracker
     for (var key in this.announceURLs) {
-      tracker = new WebSocketTracker(this, this.announceURLs[key])
-      tracker.announce({
+      this.trackers[key] = new WebSocketTracker(this, this.announceURLs[key])
+      this.trackers[key].announce({
         numwant: 50
       })
     }

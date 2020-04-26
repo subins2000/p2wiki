@@ -57,7 +57,6 @@ export class P2Wiki {
       delete $this.proxyPeers[peerID]
       delete $this.proxyPeersID[this.proxyPeersID.indexOf(peerID)]
     })
-    // TODO: Peer close remove
     this.p2pt.start()
   }
 
@@ -70,7 +69,7 @@ export class P2Wiki {
   }
 
   requestArticle (articleName, callback, errorCallback) {
-    this.p2pt.search()
+    this.p2pt.requestMorePeers()
     var peer = this.getAProxyPeer()
 
     if (!peer) {
