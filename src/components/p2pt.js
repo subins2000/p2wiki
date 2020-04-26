@@ -10,10 +10,8 @@ class P2PT extends EventEmitter {
   constructor (announceURLs = [], identifierString = '') {
     super()
 
-    this.announceURLS = []
+    this.announceURLs = announceURLs
     this.peers = {}
-
-    this.announceURLS.push(announceURLs)
 
     if (identifierString) { this.setIdentifier(identifierString) }
 
@@ -33,12 +31,20 @@ class P2PT extends EventEmitter {
     const $this = this
 
     this.on('peer', (peer) => {
+      peer.on('connect', () => {
+        $this.emit('newpeer', peer)
+      })
+
       peer.on('data', (data) => {
         $this.emit('data', peer, data)
 
         if (data[0] === JSON_MESSAGE_IDENTIFIER) {
           try {
             data = JSON.parse(data.slice(1))
+
+            // A respond function
+            peer.respond = $this.peerRespond(peer, data)
+
             $this.emit('msg', peer, data.msg)
           } catch (e) {
             console.log(e)
@@ -56,8 +62,6 @@ class P2PT extends EventEmitter {
         $this.removePeer(peer.id)
         console.log('cccaaa')
       })
-
-      $this.emit('peer', peer)
     })
 
     this._fetchPeers()
@@ -69,10 +73,10 @@ class P2PT extends EventEmitter {
   }
 
   // Send a msg and get response for it
-  send (peer, msg) {
-    return Promise((response) => {
+  send (peer, msg, msgID = '') {
+    return new Promise((response) => {
       var data = {
-        id: randombytes(20),
+        id: msgID !== '' ? msgID : randombytes(20),
         msg: msg
       }
 
@@ -95,6 +99,13 @@ class P2PT extends EventEmitter {
     })
   }
 
+  peerRespond (peer, data) {
+    var $this = this
+    return () => {
+      return $this.send(peer, data, data.id)
+    }
+  }
+
   _defaultAnnounceOpts (opts = {}) {
     if (opts.numwant == null) opts.numwant = 50
 
@@ -106,8 +117,8 @@ class P2PT extends EventEmitter {
 
   _fetchPeers () {
     var tracker
-    for (var key in this.announceURLS) {
-      tracker = new WebSocketTracker(this, this.announceURLS[key])
+    for (var key in this.announceURLs) {
+      tracker = new WebSocketTracker(this, this.announceURLs[key])
       tracker.announce({
         numwant: 50
       })

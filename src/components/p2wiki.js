@@ -8,13 +8,13 @@ export class P2Wiki {
     this.proxyPeersID = []
     this.curProxyPeerIndex = 0
 
-    this.p2pt = new P2PT(announceURLs)
+    this.p2pt = new P2PT(announceURLs, 'p2wiki')
   }
 
   startProxy () {
     this.p2pt.on('msg', (peer, msg) => {
       if (msg === 'c') {
-        peer.send('p') // Yes, I'm a proxy
+        peer.respond('p') // Yes, I'm a proxy
       } else {
         // If first character is ♾, it's followed by JSON
         msg = JSON.parse(msg.splice(1))
@@ -33,25 +33,34 @@ export class P2Wiki {
 
   startClient () {
     const $this = this
-    this.p2pt.on('data', (peer, data) => {
-      if (data === 'p') {
-        $this.proxyPeers[peer.id] = peer
-        $this.proxyPeersIndex.push(peer.id)
-      }
+    this.p2pt.on('newpeer', (peer) => {
+      $this.p2pt.send(
+        peer,
+        'c'
+      ).then((response) => {
+        if (response === 'p') {
+          $this.proxyPeers[peer.id] = peer
+          $this.proxyPeersIndex.push(peer.id)
+        }
+      })
     })
     this.p2pt.start()
   }
 
   getAProxyPeer () {
-    if (this.proxyPeers.length === 0) { return false }
+    if (this.proxyPeersID.length === 0) { return false }
 
     if (this.curProxyPeerIndex > this.proxyPeersID.length - 1) { this.curProxyPeerIndex = 0 }
 
     return this.proxyPeers[this.proxyPeersID[this.curProxyPeerIndex]]
   }
 
-  requestArticle (articleName, callback) {
+  requestArticle (articleName, callback, errorCallback) {
     var peer = this.getAProxyPeer()
+
+    if (!peer) {
+      return false
+    }
 
     this.p2pt.send(peer, {
       articleName: articleName

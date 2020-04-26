@@ -10,6 +10,7 @@ class Searchbar extends React.Component {
     super(props);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.getFromWiki = this.getFromWiki.bind(this);
     this.state = {
       title: "",
       query: "",
@@ -35,6 +36,8 @@ class Searchbar extends React.Component {
       this.state.beAProxy = true;
 
       this.p2wiki.startProxy()
+    } else {
+      this.p2wiki.startClient()
     }
 
     var that = this,
@@ -52,18 +55,22 @@ class Searchbar extends React.Component {
   getFromWiki () {
     if (this.state.query !== "") {
       var that = this;
-      this.p2wiki.requestArticle(this.state.query, function (res) {
-        that.setState({
-          title: res.data.parse.title,
-          result: res.data.parse.text,
-        })
-      }).catch((err) => {
-        if (err === 'nopeer') {
-          console.log('nopeer, retrying in 3 seconds')
-          clearInterval(that.retryInterval)
-          that.retryInterval = setTimeout(that.getFromWiki, 3000)
-        }
-      })
+      
+      if (
+        this.p2wiki.requestArticle(
+          this.state.query,
+          function (res) {
+            that.setState({
+              title: res.data.parse.title,
+              result: res.data.parse.text,
+            })
+          }
+        ) === false
+      ) {
+        console.log('nopeer, retrying in 3 seconds')
+        clearInterval(this.retryInterval)
+        this.retryInterval = setTimeout(this.getFromWiki, 3000)
+      }
     }
   }
 
