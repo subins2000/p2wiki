@@ -1,3 +1,8 @@
+/**
+ * Peer 2 Peer with webTorrents
+ * Copyright Subin Siby <mail@subinsb.com>, 2020
+ */
+
 const WebSocketTracker = require('bittorrent-tracker/lib/client/websocket-tracker')
 const randombytes = require('randombytes')
 const EventEmitter = require('events')

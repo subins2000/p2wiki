@@ -17,12 +17,11 @@ export class P2Wiki {
         peer.respond('p') // Yes, I'm a proxy
       } else {
         // If first character is ♾, it's followed by JSON
-        msg = JSON.parse(msg.splice(1))
 
-        axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${msg.q}&prop=text&formatversion=2&origin=*`).then(res => {
+        axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${msg.articleName}&prop=text&formatversion=2&origin=*`).then(res => {
           console.log(res)
 
-          peer.send(JSON.stringify(res))
+          peer.respond(res)
         }).catch((err) => {
           console.log(err)
         })
@@ -64,8 +63,7 @@ export class P2Wiki {
 
     this.p2pt.send(peer, {
       articleName: articleName
-    }).then((response) => {
-      response = JSON.parse(response)
+    }).then(([peer, response]) => {
       callback(response)
     })
   }
