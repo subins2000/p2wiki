@@ -82,7 +82,7 @@ class P2PT extends EventEmitter {
   send (peer, msg, msgID = '') {
     return new Promise((resolve) => {
       var data = {
-        id: msgID !== '' ? msgID : Math.random(),
+        id: msgID !== '' ? msgID : Math.floor(Math.random() * 100000 + 100000),
         msg: msg
       }
 
