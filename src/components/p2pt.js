@@ -6,7 +6,6 @@
 const WebSocketTracker = require('bittorrent-tracker/lib/client/websocket-tracker')
 const randombytes = require('randombytes')
 const EventEmitter = require('events')
-const str = require('string-to-stream')
 const sha1 = require('simple-sha1')
 const debug = require('debug')('p2pt')
 
@@ -105,7 +104,7 @@ class P2PT extends EventEmitter {
     const $this = this
     return new Promise((resolve, reject) => {
       if (!peer.connected) {
-        reject('closed')
+        reject(Error('closed'))
       }
 
       var data = {
@@ -125,7 +124,7 @@ class P2PT extends EventEmitter {
               if (chunkHandler !== false) {
                 peer.removeListener('data', responseCallback)
                 $this._destroyChunks(data.id)
-                
+
                 resolve([peer, chunkHandler])
               }
             }
@@ -183,7 +182,7 @@ class P2PT extends EventEmitter {
     }
 
     this.msgChunks[data.id][data.c] = data.msg
-    
+
     if (data.last) {
       var completeMsg = this.msgChunks[data.id].join('')
       return completeMsg
