@@ -1,22 +1,22 @@
-import React from "react";
-//import axios from 'axios';
-//import { Label } from "@rebass/forms";
-//import { Box, Button } from "rebass"
-import { P2Wiki } from "./p2wiki";
+import React from 'react'
+// import axios from 'axios';
+// import { Label } from "@rebass/forms";
+// import { Box, Button } from "rebass"
+import { P2Wiki } from './p2wiki'
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.getFromWiki = this.getFromWiki.bind(this);
+  constructor (props) {
+    super(props)
+    this.handleChange = this.handleChange.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
+    this.getFromWiki = this.getFromWiki.bind(this)
     this.state = {
-      title: "",
-      query: "",
-      result: "",
-      beAProxy: false,
-    };
+      title: '',
+      query: '',
+      result: '',
+      beAProxy: false
+    }
 
     this.retryInterval = null
 
@@ -24,45 +24,44 @@ class Searchbar extends React.Component {
       'ws://localhost:5000',
       'wss://tracker.openwebtorrent.com',
       'wss://tracker.sloppyta.co:443/announce',
-      'wss://tracker.novage.com.ua:443/announce',
+      'wss://tracker.novage.com.ua:443/announce'
     ]
 
-    if (window.location.hostname === 'localhost')
-      announceURLs = ['ws://localhost:5000']
+    if (window.location.hostname === 'localhost') { announceURLs = ['ws://localhost:5000'] }
 
     this.p2wiki = new P2Wiki(announceURLs)
 
-    if (localStorage.getItem("beAProxy") === "true") {
-      this.state.beAProxy = true;
+    if (window.localStorage.getItem('beAProxy') === 'true') {
+      this.state.beAProxy = true
 
       this.p2wiki.startProxy()
     } else {
       this.p2wiki.startClient()
     }
 
-    var that = this,
-        url = document.location.pathname,
-        spli = url.split("/");
+    var that = this
+    var url = document.location.pathname
+    var spli = url.split('/')
 
     if (spli.length > 2 && spli[spli.length - 2] === 'wiki') {
       setTimeout(function () {
-        that.urloli(spli[spli.length - 1]);
-        that.getFromWiki();
-      }, 1000);
+        that.urloli(spli[spli.length - 1])
+        that.getFromWiki()
+      }, 1000)
     }
   }
 
   getFromWiki () {
-    if (this.state.query !== "") {
-      var that = this;
-      
+    if (this.state.query !== '') {
+      var that = this
+
       if (
         this.p2wiki.requestArticle(
           this.state.query,
           function (res) {
             that.setState({
               title: res.data.parse.title,
-              result: res.data.parse.text,
+              result: res.data.parse.text
             })
           }
         ) === false
@@ -75,10 +74,10 @@ class Searchbar extends React.Component {
   }
 
   handleSubmit (e) {
-    e.preventDefault();
-    console.log(this.state.query);
+    e.preventDefault()
+    console.log(this.state.query)
 
-    this.getFromWiki();
+    this.getFromWiki()
     /**
         axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${this.state.query}&prop=query&formatversion=2`).then(res => {
             console.log(res.data)
@@ -86,62 +85,66 @@ class Searchbar extends React.Component {
                 title: res.data.parse.title,
                 result: res.data.parse.query,
             });
-        }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});*/
+        }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});
+    */
   };
-  handleChange(e) {
-    const value =
-      e.target.type === "checkbox" ? e.target.checked : e.target.value;
-    this.setState({
-      [e.target.name]: value,
-    });
 
-    if (e.target.name === "beAProxy") {
-      localStorage.setItem("beAProxy", value);
-      window.location.reload();
+  handleChange (e) {
+    const value =
+      e.target.type === 'checkbox' ? e.target.checked : e.target.value
+    this.setState({
+      [e.target.name]: value
+    })
+
+    if (e.target.name === 'beAProxy') {
+      window.localStorage.setItem('beAProxy', value)
+      window.location.reload()
     }
   }
-  urloli(e) {
+
+  urloli (e) {
     this.setState({
-      query: e,
-    });
+      query: e
+    })
   }
-  render() {
-    let createMarkup = (html) => {
-      //console.log(query)
-      return { __html: html };
-    };
+
+  render () {
+    const createMarkup = (html) => {
+      // console.log(query)
+      return { __html: html }
+    }
     return (
       <div>
         <form onSubmit={this.handleSubmit}>
-          <label className="checkbox">
+          <label className='checkbox'>
             <input
-              type="checkbox"
+              type='checkbox'
               onChange={this.handleChange}
-              name="beAProxy"
+              name='beAProxy'
               checked={this.state.beAProxy}
             />
-            <span style={{marginLeft: '5px'}}>Be a Proxy Peer</span>
+            <span style={{ marginLeft: '5px' }}>Be a Proxy Peer</span>
           </label>
-          <div className="field">
-            <div className="control">
+          <div className='field'>
+            <div className='control'>
               <input
-                className="input is-rounded"
-                id="query"
-                type="Text"
-                placeholder="🔍 Search for an article"
+                className='input is-rounded'
+                id='query'
+                type='Text'
+                placeholder='🔍 Search for an article'
                 onChange={this.handleChange}
-                name="query"
+                name='query'
                 value={this.state.query}
               />
             </div>
           </div>
         </form>
-        <div className="container mx-auto">
-          <h1 className="title text-4xl">{this.state.title}</h1>
+        <div className='container mx-auto'>
+          <h1 className='title text-4xl'>{this.state.title}</h1>
           <div dangerouslySetInnerHTML={createMarkup(this.state.result)} />
         </div>
       </div>
-    );
+    )
   }
 }
-export default Searchbar;
+export default Searchbar

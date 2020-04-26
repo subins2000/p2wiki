@@ -16,7 +16,7 @@ export class P2Wiki {
       if (msg === 'c') {
         // Yes, I'm a proxy
         peer.respond('p').catch((err) => {
-          console.error('Connection to client failed before handsahake' + err)
+          console.error('Connection to client failed before handsahake. ' + err)
         })
       } else {
         try {
