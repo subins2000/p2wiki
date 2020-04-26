@@ -4,7 +4,7 @@ const EventEmitter = require('events')
 const str = require('string-to-stream')
 const sha1 = require('simple-sha1')
 
-const JSON_MESSAGE_IDENTIFIER = '🌚'
+const JSON_MESSAGE_IDENTIFIER = 'p'
 
 class P2PT extends EventEmitter {
   constructor (announceURLs = [], identifierString = '') {
@@ -38,12 +38,13 @@ class P2PT extends EventEmitter {
       peer.on('data', (data) => {
         $this.emit('data', peer, data)
 
+        data = data.toString()
         if (data[0] === JSON_MESSAGE_IDENTIFIER) {
           try {
             data = JSON.parse(data.slice(1))
 
             // A respond function
-            peer.respond = $this.peerRespond(peer, data)
+            peer.respond = $this.peerRespond(peer, data.id)
 
             $this.emit('msg', peer, data.msg)
           } catch (e) {
@@ -74,18 +75,19 @@ class P2PT extends EventEmitter {
 
   // Send a msg and get response for it
   send (peer, msg, msgID = '') {
-    return new Promise((response) => {
+    return new Promise((resolve) => {
       var data = {
-        id: msgID !== '' ? msgID : randombytes(20),
+        id: msgID !== '' ? msgID : Math.random(),
         msg: msg
       }
 
       var responseCallback = (responseData) => {
+        responseData = responseData.toString()
         if (responseData[0] === JSON_MESSAGE_IDENTIFIER) {
           try {
             responseData = JSON.parse(responseData.slice(1))
             if (responseData.id === data.id) {
-              response(responseData.msg)
+              resolve([peer, responseData.msg])
             }
           } catch (e) {
             console.log(e)
@@ -93,16 +95,16 @@ class P2PT extends EventEmitter {
         }
         peer.removeListener('data', responseCallback)
       }
-
+      console.log(data)
       peer.on('data', responseCallback)
-      peer.send(JSON.stringify(data))
+      peer.send(JSON_MESSAGE_IDENTIFIER + JSON.stringify(data))
     })
   }
 
-  peerRespond (peer, data) {
+  peerRespond (peer, msgID) {
     var $this = this
-    return () => {
-      return $this.send(peer, data, data.id)
+    return (msg) => {
+      return $this.send(peer, msg, msgID)
     }
   }
 

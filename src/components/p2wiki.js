@@ -37,10 +37,10 @@ export class P2Wiki {
       $this.p2pt.send(
         peer,
         'c'
-      ).then((response) => {
+      ).then(([peer, response]) => {
         if (response === 'p') {
           $this.proxyPeers[peer.id] = peer
-          $this.proxyPeersIndex.push(peer.id)
+          $this.proxyPeersID.push(peer.id)
         }
       })
     })
