@@ -48,7 +48,7 @@ class P2PT extends EventEmitter {
 
     this.on('peer', (peer) => {
       peer.on('connect', () => {
-        $this.emit('newpeer', peer)
+        $this.emit('peerconnect', peer)
       })
 
       peer.on('data', (data) => {
@@ -63,7 +63,7 @@ class P2PT extends EventEmitter {
             data = JSON.parse(data.slice(1))
 
             // A respond function
-            peer.respond = $this.peerRespond(peer, data.id)
+            peer.respond = $this._peerRespond(peer, data.id)
 
             var chunkHandler = $this._chunkHandler(data)
 
@@ -91,8 +91,8 @@ class P2PT extends EventEmitter {
   }
 
   removePeer (id) {
+    this.emit('peerclose', id)
     delete this.peers[id]
-    this.emit('peercountchange', Object.keys(this.peers).length)
   }
 
   /**
@@ -103,7 +103,11 @@ class P2PT extends EventEmitter {
    */
   send (peer, msg, msgID = '') {
     const $this = this
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      if (!peer.connected) {
+        reject('closed')
+      }
+
       var data = {
         id: msgID !== '' ? msgID : Math.floor(Math.random() * 100000 + 100000),
         msg: msg
@@ -120,6 +124,8 @@ class P2PT extends EventEmitter {
 
               if (chunkHandler !== false) {
                 peer.removeListener('data', responseCallback)
+                $this._destroyChunks(data.id)
+                
                 resolve([peer, chunkHandler])
               }
             }
@@ -149,7 +155,18 @@ class P2PT extends EventEmitter {
     })
   }
 
-  peerRespond (peer, msgID) {
+  /**
+   * Find new peers
+   */
+  search () {
+    const $this = this
+    return new Promise((resolve) => {
+      this._fetchPeers()
+      resolve($this.peers)
+    })
+  }
+
+  _peerRespond (peer, msgID) {
     var $this = this
     return (msg) => {
       return $this.send(peer, msg, msgID)
@@ -157,7 +174,7 @@ class P2PT extends EventEmitter {
   }
 
   /**
-   * Handle msg chunks. Returns false until all chunks are received. Finally returns the entire msg
+   * Handle msg chunks. Returns false until the last chunk is received. Finally returns the entire msg
    * @param object data
    */
   _chunkHandler (data) {
@@ -168,10 +185,15 @@ class P2PT extends EventEmitter {
     this.msgChunks[data.id][data.c] = data.msg
     
     if (data.last) {
-      return this.msgChunks[data.id].join('')
+      var completeMsg = this.msgChunks[data.id].join('')
+      return completeMsg
     } else {
       return false
     }
+  }
+
+  _destroyChunks (msgID) {
+    delete this.msgChunks[msgID]
   }
 
   _defaultAnnounceOpts (opts = {}) {

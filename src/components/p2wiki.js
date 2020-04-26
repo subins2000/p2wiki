@@ -14,7 +14,10 @@ export class P2Wiki {
   startProxy () {
     this.p2pt.on('msg', (peer, msg) => {
       if (msg === 'c') {
-        peer.respond('p') // Yes, I'm a proxy
+        // Yes, I'm a proxy
+        peer.respond('p').catch((err) => {
+          console.error('Connection to client failed before handsahake')
+        })
       } else {
         try {
           msg = JSON.parse(msg)
@@ -36,7 +39,7 @@ export class P2Wiki {
 
   startClient () {
     const $this = this
-    this.p2pt.on('newpeer', (peer) => {
+    this.p2pt.on('peerconnect', (peer) => {
       $this.p2pt.send(
         peer,
         'c'
@@ -46,6 +49,11 @@ export class P2Wiki {
           $this.proxyPeersID.push(peer.id)
         }
       })
+    })
+
+    this.p2pt.on('peerclose', (peerID) => {
+      delete $this.proxyPeers[peerID]
+      delete $this.proxyPeersID[this.proxyPeersID.indexOf(peerID)]
     })
     // TODO: Peer close remove
     this.p2pt.start()
@@ -60,6 +68,7 @@ export class P2Wiki {
   }
 
   requestArticle (articleName, callback, errorCallback) {
+    this.p2pt.search()
     var peer = this.getAProxyPeer()
 
     if (!peer) {
