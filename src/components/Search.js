@@ -21,10 +21,10 @@ class Searchbar extends React.Component {
     this.retryInterval = null
 
     var announceURLs = [
-      'ws://localhost:5000',
       'wss://tracker.openwebtorrent.com',
       'wss://tracker.sloppyta.co:443/announce',
-      'wss://tracker.novage.com.ua:443/announce'
+      'wss://tracker.novage.com.ua:443/announce',
+      'wss://tracker.btorrent.xyz:443/announce'
     ]
 
     if (window.location.hostname === 'localhost') { announceURLs = ['ws://localhost:5000'] }
