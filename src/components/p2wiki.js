@@ -16,15 +16,19 @@ export class P2Wiki {
       if (msg === 'c') {
         peer.respond('p') // Yes, I'm a proxy
       } else {
-        // If first character is ♾, it's followed by JSON
+        try {
+          msg = JSON.parse(msg)
 
-        axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${msg.articleName}&prop=text&formatversion=2&origin=*`).then(res => {
-          console.log(res)
+          axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${msg.articleName}&prop=text&formatversion=2&origin=*`).then(res => {
+            console.log(res)
 
-          peer.respond(res)
-        }).catch((err) => {
-          console.log(err)
-        })
+            peer.respond(JSON.stringify(res))
+          }).catch((err) => {
+            console.log(err)
+          })
+        } catch (e) {
+          console.log(e)
+        }
       }
     })
     this.p2pt.start()
@@ -43,6 +47,7 @@ export class P2Wiki {
         }
       })
     })
+    // TODO: Peer close remove
     this.p2pt.start()
   }
 
@@ -61,10 +66,14 @@ export class P2Wiki {
       return false
     }
 
-    this.p2pt.send(peer, {
+    this.p2pt.send(peer, JSON.stringify({
       articleName: articleName
-    }).then(([peer, response]) => {
-      callback(response)
+    })).then(([peer, response]) => {
+      try {
+        callback(JSON.parse(response))
+      } catch (e) {
+        console.log(e)
+      }
     })
   }
 }

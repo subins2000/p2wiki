@@ -8,8 +8,18 @@ const randombytes = require('randombytes')
 const EventEmitter = require('events')
 const str = require('string-to-stream')
 const sha1 = require('simple-sha1')
+const debug = require('debug')('p2pt')
 
+/**
+ * This character would be prepended to easily identify JSON msgs
+ */
 const JSON_MESSAGE_IDENTIFIER = 'p'
+
+/**
+ * WebRTC data channel limit beyond which data is split into chunks
+ * Chose 16KB considering Chromium
+ */
+const MAX_MESSAGE_LENGTH = 16000
 
 class P2PT extends EventEmitter {
   constructor (announceURLs = [], identifierString = '') {
@@ -17,6 +27,7 @@ class P2PT extends EventEmitter {
 
     this.announceURLs = announceURLs
     this.peers = {}
+    this.msgChunks = {}
 
     if (identifierString) { this.setIdentifier(identifierString) }
 
@@ -44,6 +55,9 @@ class P2PT extends EventEmitter {
         $this.emit('data', peer, data)
 
         data = data.toString()
+
+        debug('got a message : ' + data)
+
         if (data[0] === JSON_MESSAGE_IDENTIFIER) {
           try {
             data = JSON.parse(data.slice(1))
@@ -51,7 +65,11 @@ class P2PT extends EventEmitter {
             // A respond function
             peer.respond = $this.peerRespond(peer, data.id)
 
-            $this.emit('msg', peer, data.msg)
+            var chunkHandler = $this._chunkHandler(data)
+
+            if (chunkHandler !== false) {
+              $this.emit('msg', peer, chunkHandler)
+            }
           } catch (e) {
             console.log(e)
           }
@@ -59,14 +77,13 @@ class P2PT extends EventEmitter {
       })
 
       peer.on('error', (err) => {
-        console.log(err)
         $this.removePeer(peer.id)
-        console.log('ccc')
+        debug('Error in connection : ' + err)
       })
 
       peer.on('close', () => {
         $this.removePeer(peer.id)
-        console.log('cccaaa')
+        debug('Conncection closed')
       })
     })
 
@@ -78,31 +95,57 @@ class P2PT extends EventEmitter {
     this.emit('peercountchange', Object.keys(this.peers).length)
   }
 
-  // Send a msg and get response for it
+  /**
+   * Send a msg and get response for it
+   * @param SimplePeer peer Peer to send msg to
+   * @param string msg Message to send
+   * @param integer msgID ID of message if it's a response to a previous message
+   */
   send (peer, msg, msgID = '') {
+    const $this = this
     return new Promise((resolve) => {
       var data = {
         id: msgID !== '' ? msgID : Math.floor(Math.random() * 100000 + 100000),
         msg: msg
       }
 
+      // TODO: Only listen callback if there's resolve i.e the caller expects a response and then only removeListener
       var responseCallback = (responseData) => {
         responseData = responseData.toString()
         if (responseData[0] === JSON_MESSAGE_IDENTIFIER) {
           try {
             responseData = JSON.parse(responseData.slice(1))
             if (responseData.id === data.id) {
-              resolve([peer, responseData.msg])
+              var chunkHandler = $this._chunkHandler(responseData)
+
+              if (chunkHandler !== false) {
+                peer.removeListener('data', responseCallback)
+                resolve([peer, chunkHandler])
+              }
             }
           } catch (e) {
             console.log(e)
           }
         }
-        peer.removeListener('data', responseCallback)
       }
-      console.log(data)
+
       peer.on('data', responseCallback)
-      peer.send(JSON_MESSAGE_IDENTIFIER + JSON.stringify(data))
+
+      var chunks = 0
+      var remaining = ''
+      while (data.msg.length > 0) {
+        data.c = chunks
+
+        remaining = data.msg.slice(MAX_MESSAGE_LENGTH)
+        data.msg = data.msg.slice(0, MAX_MESSAGE_LENGTH)
+
+        if (!remaining) { data.last = true }
+
+        peer.send(JSON_MESSAGE_IDENTIFIER + JSON.stringify(data))
+
+        data.msg = remaining
+        chunks++
+      }
     })
   }
 
@@ -110,6 +153,24 @@ class P2PT extends EventEmitter {
     var $this = this
     return (msg) => {
       return $this.send(peer, msg, msgID)
+    }
+  }
+
+  /**
+   * Handle msg chunks. Returns false until all chunks are received. Finally returns the entire msg
+   * @param object data
+   */
+  _chunkHandler (data) {
+    if (!this.msgChunks[data.id]) {
+      this.msgChunks[data.id] = []
+    }
+
+    this.msgChunks[data.id][data.c] = data.msg
+    
+    if (data.last) {
+      return this.msgChunks[data.id].join('')
+    } else {
+      return false
     }
   }
 
