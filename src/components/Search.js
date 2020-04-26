@@ -2,16 +2,15 @@ import React from "react";
 //import axios from 'axios';
 //import { Label } from "@rebass/forms";
 //import { Box, Button } from "rebass"
-import { requestArticle, msgBind } from "./p2p";
+import { P2Wiki } from "./p2wiki";
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
-  retryInterval = null
-
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.getFromWiki = this.getFromWiki.bind(this);
     this.state = {
       title: "",
       query: "",
@@ -19,8 +18,26 @@ class Searchbar extends React.Component {
       beAProxy: false,
     };
 
+    this.retryInterval = null
+
+    var announceURLs = [
+      'ws://localhost:5000',
+      'wss://tracker.openwebtorrent.com',
+      'wss://tracker.sloppyta.co:443/announce',
+      'wss://tracker.novage.com.ua:443/announce',
+    ]
+
+    if (window.location.hostname === 'localhost')
+      announceURLs = ['ws://localhost:5000']
+
+    this.p2wiki = new P2Wiki(announceURLs)
+
     if (localStorage.getItem("beAProxy") === "true") {
       this.state.beAProxy = true;
+
+      this.p2wiki.startProxy()
+    } else {
+      this.p2wiki.startClient()
     }
 
     var that = this,
@@ -33,31 +50,31 @@ class Searchbar extends React.Component {
         that.getFromWiki();
       }, 1000);
     }
-
-    msgBind((type, msg) => {
-      console.log(type, msg)
-    })
   }
 
-  getFromWiki = () => {
+  getFromWiki () {
     if (this.state.query !== "") {
       var that = this;
-      requestArticle(this.state.query).then(function (res) {
-        that.setState({
-          title: res.data.parse.title,
-          result: res.data.parse.text,
-        })
-      }).catch((err) => {
-        if (err === 'nopeer') {
-          console.log('nopeer, retrying in 3 seconds')
-          clearInterval(that.retryInterval)
-          that.retryInterval = setTimeout(that.getFromWiki, 3000)
-        }
-      })
+      
+      if (
+        this.p2wiki.requestArticle(
+          this.state.query,
+          function (res) {
+            that.setState({
+              title: res.data.parse.title,
+              result: res.data.parse.text,
+            })
+          }
+        ) === false
+      ) {
+        console.log('nopeer, retrying in 3 seconds')
+        clearInterval(this.retryInterval)
+        this.retryInterval = setTimeout(this.getFromWiki, 3000)
+      }
     }
   }
 
-  handleSubmit = (e) => {
+  handleSubmit (e) {
     e.preventDefault();
     console.log(this.state.query);
 
