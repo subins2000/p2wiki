@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/p2wiki/static/css/main.1aeedcc8.chunk.css",
-    "main.js": "/p2wiki/static/js/main.5f320a6d.chunk.js",
-    "main.js.map": "/p2wiki/static/js/main.5f320a6d.chunk.js.map",
+    "main.js": "/p2wiki/static/js/main.26135a5e.chunk.js",
+    "main.js.map": "/p2wiki/static/js/main.26135a5e.chunk.js.map",
     "runtime-main.js": "/p2wiki/static/js/runtime-main.22512e2f.js",
     "runtime-main.js.map": "/p2wiki/static/js/runtime-main.22512e2f.js.map",
     "static/js/2.bbb466e8.chunk.js": "/p2wiki/static/js/2.bbb466e8.chunk.js",
     "static/js/2.bbb466e8.chunk.js.map": "/p2wiki/static/js/2.bbb466e8.chunk.js.map",
     "index.html": "/p2wiki/index.html",
-    "precache-manifest.1e7ae9636214aade84969148cb475ad1.js": "/p2wiki/precache-manifest.1e7ae9636214aade84969148cb475ad1.js",
+    "precache-manifest.cd237cd11e179e0094736ec307e00505.js": "/p2wiki/precache-manifest.cd237cd11e179e0094736ec307e00505.js",
     "service-worker.js": "/p2wiki/service-worker.js",
     "static/css/main.1aeedcc8.chunk.css.map": "/p2wiki/static/css/main.1aeedcc8.chunk.css.map",
     "static/js/2.bbb466e8.chunk.js.LICENSE.txt": "/p2wiki/static/js/2.bbb466e8.chunk.js.LICENSE.txt"
@@ -17,6 +17,6 @@
     "static/js/runtime-main.22512e2f.js",
     "static/js/2.bbb466e8.chunk.js",
     "static/css/main.1aeedcc8.chunk.css",
-    "static/js/main.5f320a6d.chunk.js"
+    "static/js/main.26135a5e.chunk.js"
   ]
 }
