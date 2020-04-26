@@ -82,7 +82,7 @@ class P2PT extends EventEmitter {
 
       peer.on('close', () => {
         $this.removePeer(peer.id)
-        debug('Conncection closed')
+        debug('Connection closed')
       })
     })
 

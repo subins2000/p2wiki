@@ -22,6 +22,8 @@ export class P2Wiki {
         try {
           msg = JSON.parse(msg)
 
+          console.log('Got request for article ' + msg.articleName)
+
           axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${msg.articleName}&prop=text&formatversion=2&origin=*`).then(res => {
             console.log(res)
 
