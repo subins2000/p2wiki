@@ -2,12 +2,10 @@ import React from "react";
 //import axios from 'axios';
 //import { Label } from "@rebass/forms";
 //import { Box, Button } from "rebass"
-import { requestArticle, p2Wiki } from "./p2wiki";
+import { P2Wiki } from "./p2wiki";
 
 // class Searchbar = (props) => {
 class Searchbar extends React.Component {
-  retryInterval = null
-
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
@@ -19,7 +17,9 @@ class Searchbar extends React.Component {
       beAProxy: false,
     };
 
-    var announce = [
+    this.retryInterval = null
+
+    var announceURLs = [
       'ws://localhost:5000',
       'wss://tracker.openwebtorrent.com',
       'wss://tracker.sloppyta.co:443/announce',
@@ -27,12 +27,14 @@ class Searchbar extends React.Component {
     ]
 
     if (window.location.hostname === 'localhost')
-      announce = ['ws://localhost:5000']
+      announceURLs = ['ws://localhost:5000']
 
-    this.p2pt = new P2PT(announce)
+    this.p2wiki = new P2Wiki(announceURLs)
 
     if (localStorage.getItem("beAProxy") === "true") {
       this.state.beAProxy = true;
+
+      this.p2wiki.startProxy()
     }
 
     var that = this,
@@ -45,16 +47,12 @@ class Searchbar extends React.Component {
         that.getFromWiki();
       }, 1000);
     }
-
-    msgBind((type, msg) => {
-      console.log(type, msg)
-    })
   }
 
-  getFromWiki = () => {
+  getFromWiki () {
     if (this.state.query !== "") {
       var that = this;
-      requestArticle(this.state.query).then(function (res) {
+      this.p2wiki.requestArticle(this.state.query, function (res) {
         that.setState({
           title: res.data.parse.title,
           result: res.data.parse.text,
@@ -69,7 +67,7 @@ class Searchbar extends React.Component {
     }
   }
 
-  handleSubmit = (e) => {
+  handleSubmit (e) {
     e.preventDefault();
     console.log(this.state.query);
 
