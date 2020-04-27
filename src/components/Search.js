@@ -18,6 +18,8 @@ class Searchbar extends React.Component {
       beAProxy: false
     }
 
+    this.media = {}
+
     this.retryInterval = null
 
     var announceURLs = [
@@ -53,15 +55,18 @@ class Searchbar extends React.Component {
 
   getFromWiki () {
     if (this.state.query !== '') {
-      var that = this
+      var $this = this
 
       if (
         this.p2wiki.requestArticle(
           this.state.query,
           function (res) {
-            that.setState({
-              title: res.data.parse.title,
-              result: res.data.parse.text
+            $this.media = res.media
+            res.text.getBuffer((err, buffer) => {
+              $this.setState({
+                title: res.title,
+                result: buffer.toString()
+              })
             })
           }
         ) === false
@@ -109,9 +114,24 @@ class Searchbar extends React.Component {
   }
 
   render () {
+    const $this = this
     const createMarkup = (html) => {
-      // console.log(query)
-      return { __html: html }
+      var parser = new DOMParser();
+      html = parser.parseFromString(html, 'text/html');
+
+      const images = html.querySelectorAll("a[class='image']");
+      var url, filename
+      for (let i = 0; i < images.length; i++) {
+        filename = new URL(images[i].href).pathname.slice(6)
+
+        images[i].firstChild.src = ''
+
+        if ($this.media[filename]) {
+          $this.media[filename].renderTo(images[i].firstChild)
+        }
+      }
+
+      return { __html: html.body.innerHTML }
     }
     return (
       <div>
