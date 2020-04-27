@@ -96,7 +96,7 @@ export class P2Wiki {
       }
 
       axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${articleName}&prop=text&formatversion=2&origin=*`).then(response => {
-        var file = new File([response.data.parse.text], 'article.html', { type: 'text/html' })
+        var file = new window.File([response.data.parse.text], 'article.html', { type: 'text/html' })
         files.push(file)
 
         fetched.title = response.data.parse.title
@@ -113,10 +113,8 @@ export class P2Wiki {
           url: url,
           responseType: 'blob'
         }).then(function (response) {
-          // $@ to distinguish title & scale separately
-          // Hoping titles won't have that combo
-          var filename = title + '$@' + scale
-          var file = new File([response.data], filename)
+          var filename = title
+          var file = new window.File([response.data], filename)
 
           files.push(file)
 
@@ -132,10 +130,14 @@ export class P2Wiki {
         var item
         for (var key in response.data.items) {
           item = response.data.items[key]
-          for (var i in item.srcset) {
-            addMedia(item.title, item.srcset[i].scale, item.srcset[i].src)
-            fetched.mediaCount++
+
+          // Skip non-images
+          if (!item.srcset) {
+            continue
           }
+
+          addMedia(item.title, item.srcset[0].scale, item.srcset[0].src)
+          fetched.mediaCount++
         }
       }).catch(error => {
         reject(error)
