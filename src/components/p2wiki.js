@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import P2PT from './p2pt'
+import P2PT from 'p2pt'
 
 export class P2Wiki {
   constructor (announceURLs) {

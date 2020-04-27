@@ -8256,6 +8256,15 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
 
+p2pt@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/p2pt/-/p2pt-1.0.0.tgz#2343b6d7ee9c2021179ed097654e7f2c5d6c4bfc"
+  integrity sha512-sUrVGCltpsGVRTrkqX7qUv2B88/pEKIisE6wpUx8AIg2DnnaiGpj9/XcqlR9vu1UWw9M/YG8FgJGqNRKf8bI1g==
+  dependencies:
+    bittorrent-tracker "^9.14.5"
+    randombytes "^2.1.0"
+    simple-sha1 "^3.0.1"
+
 package-json-versionify@^1.0.2:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/package-json-versionify/-/package-json-versionify-1.0.4.tgz#5860587a944873a6b7e6d26e8e51ffb22315bf17"
@@ -9485,7 +9494,7 @@ random-iterate@^1.0.1:
   resolved "https://registry.yarnpkg.com/random-iterate/-/random-iterate-1.0.1.tgz#f7d97d92dee6665ec5f6da08c7f963cad4b2ac99"
   integrity sha1-99l9kt7mZl7F9toIx/ljytSyrJk=
 
-randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.3, randombytes@^2.0.5:
+randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.3, randombytes@^2.0.5, randombytes@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/randombytes/-/randombytes-2.1.0.tgz#df6f84372f0270dc65cdf6291349ab7a473d4f2a"
   integrity sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==
