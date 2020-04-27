@@ -12,6 +12,7 @@ export class P2Wiki {
   }
 
   startProxy () {
+    const $this = this
     this.p2pt.on('msg', (peer, msg) => {
       if (msg === 'c') {
         // Yes, I'm a proxy
@@ -24,13 +25,7 @@ export class P2Wiki {
 
           console.log('Got request for article ' + msg.articleName)
 
-          axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${msg.articleName}&prop=text&formatversion=2&origin=*`).then(res => {
-            console.log(res)
-
-            peer.respond(JSON.stringify(res))
-          }).catch((err) => {
-            console.log(err)
-          })
+          $this.makeArticleTorrent(msg.articleName)
         } catch (e) {
           console.log(e)
         }
@@ -66,6 +61,46 @@ export class P2Wiki {
     if (this.curProxyPeerIndex > this.proxyPeersID.length - 1) { this.curProxyPeerIndex = 0 }
 
     return this.proxyPeers[this.proxyPeersID[this.curProxyPeerIndex]]
+  }
+
+  makeArticleTorrent (articleName) {
+    var files = []
+
+    articleName = encodeURIComponent(articleName)
+
+    axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${articleName}&prop=text&formatversion=2&origin=*`).then(response => {
+      var file = new File([response.data.parse.text], 'article.html', { type: 'text/html' })
+      files.push(file)
+    }).catch((err) => {
+      console.log(err)
+    })
+
+    var addMedia = (title, scale, url) => {
+      axios({
+        method: 'get',
+        url: url,
+        responseType: 'blob'
+      }).then(function (response) {
+        console.log(response.data)
+        // $@ to distinguish title & scale separately
+        // Hoping titles won't have that combo
+        var file = new File([response.data], title + '$@' + scale)
+
+        files.push(file)
+      })
+    }
+
+    axios.get(`//en.wikipedia.org/api/rest_v1/page/media-list/${articleName}`).then(response => {
+      var item
+      for (var key in response.data.items) {
+        item = response.data.items[key]
+        for (var i in item.srcset) {
+          addMedia(item.title, item.srcset[i].scale, item.srcset[i].src)
+        }
+      }
+    })
+
+    console.log(files)
   }
 
   requestArticle (articleName, callback, errorCallback) {

@@ -110,8 +110,18 @@ class Searchbar extends React.Component {
 
   render () {
     const createMarkup = (html) => {
-      // console.log(query)
-      return { __html: html }
+      var parser = new DOMParser();
+      html = parser.parseFromString(html, 'text/html');
+
+      const images = html.querySelectorAll("a[class='image'] img");
+      for (let i = 0; i < images.length; i++) {
+        console.log(images[i].src)
+        images[i].src = null
+      }
+
+      console.log(images)
+
+      return { __html: html.body.innerHTML }
     }
     return (
       <div>
