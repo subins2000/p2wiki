@@ -2,6 +2,7 @@ import axios from 'axios'
 import P2PT from 'p2pt'
 
 const WebTorrent = require('webtorrent')
+const debug = require('debug')('p2wiki')
 
 export class P2Wiki {
   constructor (announceURLs) {
@@ -84,12 +85,10 @@ export class P2Wiki {
 
       var ifCompletedMakeTorrent = () => {
         if (fetched.article && fetched.media.length === fetched.mediaCount) {
-          console.log(files)
           $this.wt.seed(files, {
             announceList: [$this.announceURLs],
             name: fetched.title
           }, (torrent) => {
-            console.log(torrent)
             resolve(torrent)
           })
         }
@@ -101,6 +100,8 @@ export class P2Wiki {
 
         fetched.title = response.data.parse.title
         fetched.article = true
+
+        debug(`Article ${articleName} : Fetched text`)
 
         ifCompletedMakeTorrent()
       }).catch((error) => {
@@ -117,8 +118,9 @@ export class P2Wiki {
           var file = new window.File([response.data], filename)
 
           files.push(file)
-
           fetched.media.push(filename)
+
+          debug(`Article ${articleName} : Fetched image ${fetched.media.length}/${fetched.mediaCount}`)
 
           ifCompletedMakeTorrent()
         }).catch(error => {
@@ -139,6 +141,8 @@ export class P2Wiki {
           addMedia(item.title, item.srcset[0].scale, item.srcset[0].src)
           fetched.mediaCount++
         }
+
+        debug(`Article ${articleName} : Fetched medialist. Has ${fetched.mediaCount} images`)
       }).catch(error => {
         reject(error)
       })
@@ -161,8 +165,6 @@ export class P2Wiki {
       $this.wt.add(response, {
         announce: $this.announceURLs
       }, (torrent) => {
-        console.log(torrent.files)
-
         var article = {
           title: '',
           text: null,
