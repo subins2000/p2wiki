@@ -62,11 +62,12 @@ class Searchbar extends React.Component {
           this.state.query,
           function (res) {
             $this.media = res.media
-            res.text.getBuffer((err, buffer) => {
+            res.text.getBuffer((error, buffer) => {
               $this.setState({
                 title: res.title,
                 result: buffer.toString()
               })
+              if (error) { console.log(error) }
             })
           }
         ) === false
@@ -116,11 +117,11 @@ class Searchbar extends React.Component {
   render () {
     const $this = this
     const createMarkup = (html) => {
-      var parser = new DOMParser();
-      html = parser.parseFromString(html, 'text/html');
+      var parser = new window.DOMParser()
+      html = parser.parseFromString(html, 'text/html')
 
-      const images = html.querySelectorAll("a[class='image']");
-      var url, filename
+      const images = html.querySelectorAll("a[class='image']")
+      var filename
       for (let i = 0; i < images.length; i++) {
         filename = new URL(images[i].href).pathname.slice(6)
 
