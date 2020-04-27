@@ -59,9 +59,11 @@ class Searchbar extends React.Component {
         this.p2wiki.requestArticle(
           this.state.query,
           function (res) {
-            that.setState({
-              title: res.data.parse.title,
-              result: res.data.parse.text
+            res.text.getBuffer((err, buffer) => {
+              that.setState({
+                title: res.title,
+                result: buffer.toString()
+              })
             })
           }
         ) === false

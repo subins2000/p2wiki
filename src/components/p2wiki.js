@@ -1,18 +1,22 @@
 import axios from 'axios'
-
 import P2PT from 'p2pt'
+
+const WebTorrent = require('webtorrent')
 
 export class P2Wiki {
   constructor (announceURLs) {
     this.proxyPeers = {}
     this.proxyPeersID = []
     this.curProxyPeerIndex = 0
+    this.announceURLs = announceURLs
 
+    this.wt = new WebTorrent()
     this.p2pt = new P2PT(announceURLs, 'p2wiki')
   }
 
   startProxy () {
     const $this = this
+
     this.p2pt.on('msg', (peer, msg) => {
       if (msg === 'c') {
         // Yes, I'm a proxy
@@ -25,7 +29,9 @@ export class P2Wiki {
 
           console.log('Got request for article ' + msg.articleName)
 
-          $this.makeArticleTorrent(msg.articleName)
+          $this.makeArticleTorrent(msg.articleName).then((torrent) => {
+            peer.respond(torrent.infoHash)
+          })
         } catch (e) {
           console.log(e)
         }
@@ -64,43 +70,77 @@ export class P2Wiki {
   }
 
   makeArticleTorrent (articleName) {
-    var files = []
+    const $this = this
 
-    articleName = encodeURIComponent(articleName)
+    return new Promise((resolve, reject) => {
+      var files = []
+      var fetched = {
+        title: '',
+        article: false,
+        media: [],
+        mediaCount: 0
+      }
+      articleName = encodeURIComponent(articleName)
 
-    axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${articleName}&prop=text&formatversion=2&origin=*`).then(response => {
-      var file = new File([response.data.parse.text], 'article.html', { type: 'text/html' })
-      files.push(file)
-    }).catch((err) => {
-      console.log(err)
-    })
-
-    var addMedia = (title, scale, url) => {
-      axios({
-        method: 'get',
-        url: url,
-        responseType: 'blob'
-      }).then(function (response) {
-        console.log(response.data)
-        // $@ to distinguish title & scale separately
-        // Hoping titles won't have that combo
-        var file = new File([response.data], title + '$@' + scale)
-
-        files.push(file)
-      })
-    }
-
-    axios.get(`//en.wikipedia.org/api/rest_v1/page/media-list/${articleName}`).then(response => {
-      var item
-      for (var key in response.data.items) {
-        item = response.data.items[key]
-        for (var i in item.srcset) {
-          addMedia(item.title, item.srcset[i].scale, item.srcset[i].src)
+      var ifCompletedMakeTorrent = () => {
+        if (fetched.article && fetched.media.length === fetched.mediaCount) {
+          console.log(files)
+          $this.wt.seed(files, {
+            announceList: [$this.announceURLs],
+            name: fetched.title
+          }, (torrent) => {
+            console.log(torrent)
+            resolve(torrent)
+          })
         }
       }
-    })
 
-    console.log(files)
+      axios.get(`//en.wikipedia.org/w/api.php?action=parse&format=json&page=${articleName}&prop=text&formatversion=2&origin=*`).then(response => {
+        var file = new File([response.data.parse.text], 'article.html', { type: 'text/html' })
+        files.push(file)
+
+        fetched.title = response.data.parse.title
+        fetched.article = true
+
+        ifCompletedMakeTorrent()
+      }).catch((error) => {
+        reject(error)
+      })
+
+      var addMedia = (title, scale, url) => {
+        axios({
+          method: 'get',
+          url: url,
+          responseType: 'blob'
+        }).then(function (response) {
+          // $@ to distinguish title & scale separately
+          // Hoping titles won't have that combo
+          var filename = title + '$@' + scale
+          var file = new File([response.data], filename)
+
+          files.push(file)
+
+          fetched.media.push(filename)
+
+          ifCompletedMakeTorrent()
+        }).catch(error => {
+          reject(error)
+        })
+      }
+
+      axios.get(`//en.wikipedia.org/api/rest_v1/page/media-list/${articleName}`).then(response => {
+        var item
+        for (var key in response.data.items) {
+          item = response.data.items[key]
+          for (var i in item.srcset) {
+            addMedia(item.title, item.srcset[i].scale, item.srcset[i].src)
+            fetched.mediaCount++
+          }
+        }
+      }).catch(error => {
+        reject(error)
+      })
+    })
   }
 
   requestArticle (articleName, callback, errorCallback) {
@@ -111,14 +151,33 @@ export class P2Wiki {
       return false
     }
 
+    const $this = this
     this.p2pt.send(peer, JSON.stringify({
       articleName: articleName
     })).then(([peer, response]) => {
-      try {
-        callback(JSON.parse(response))
-      } catch (e) {
-        console.log(e)
-      }
+      // response will be torrent infohash
+      $this.wt.add(response, {
+        announce: $this.announceURLs
+      }, (torrent) => {
+        console.log(torrent.files)
+
+        var article = {
+          title: '',
+          text: null,
+          media: {}
+        }
+
+        torrent.files.forEach(file => {
+          if (file.name === 'article.html') {
+            article.title = torrent.name
+            article.text = file
+          } else {
+            article.media[file.name] = file
+          }
+        })
+
+        callback(article)
+      })
     })
   }
 }
