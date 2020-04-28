@@ -29,7 +29,7 @@ class Searchbar extends React.Component {
       'wss://tracker.btorrent.xyz:443/announce'
     ]
 
-    //if (window.location.hostname === 'localhost') { announceURLs = ['ws://localhost:5000'] }
+    if (window.location.hostname === 'localhost') { announceURLs = ['ws://localhost:5000'] }
 
     this.p2wiki = new P2Wiki(announceURLs)
 

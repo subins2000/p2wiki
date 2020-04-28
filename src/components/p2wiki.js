@@ -2,19 +2,30 @@ import axios from 'axios'
 import P2PT from './p2pt'
 
 const WebTorrent = require('webtorrent')
+const parallel = require('run-parallel')
 const debug = require('debug')('p2wiki')
 
 /**
+ * For client peers
  * How many peers should return the same infoHash to start downloading the torrent ?
  */
 const TORRENT_OK_CONSENSUS_COUNT = 1
 
+/**
+ * For both client & proxy peers
+ * How many minutes should an article torrent be kept seeding if nobody is downloading it
+ */
+const TORRENT_REMOVE_TIMEOUT = 0.25
+
 export class P2Wiki {
   constructor (announceURLs) {
+    this.announceURLs = announceURLs
+
     this.proxyPeers = {}
     this.proxyPeersID = []
     this.curProxyPeerIndex = 0
-    this.announceURLs = announceURLs
+
+    this.seedingTorrents = {}
 
     this.wt = new WebTorrent()
     this.p2pt = new P2PT(announceURLs, 'p2wiki')
@@ -44,6 +55,22 @@ export class P2Wiki {
       }
     })
     this.p2pt.start()
+
+    parallel([
+      () => {
+        setInterval(() => {
+          var minutes = TORRENT_REMOVE_TIMEOUT * 60 * 1000
+          var timeNow = new Date()
+          var torrentInfo
+          for (var key in $this.seedingTorrents) {
+            torrentInfo = $this.seedingTorrents[key]
+            if (timeNow - torrentInfo.lastActive > minutes) {
+              torrentInfo.torrent.destroy()
+            }
+          }
+        }, 10000)
+      }
+    ])
   }
 
   startClient () {
@@ -66,8 +93,8 @@ export class P2Wiki {
     })
 
     this.p2pt.on('peerclose', (peerID) => {
-      //delete $this.proxyPeers[peerID]
-      //delete $this.proxyPeersID[this.proxyPeersID.indexOf(peerID)]
+      delete $this.proxyPeers[peerID]
+      delete $this.proxyPeersID[this.proxyPeersID.indexOf(peerID)]
     })
     this.p2pt.start()
   }
@@ -84,6 +111,13 @@ export class P2Wiki {
     const $this = this
 
     return new Promise((resolve, reject) => {
+      articleName = encodeURIComponent(articleName)
+
+      if ($this.seedingTorrents[articleName]) {
+        resolve($this.seedingTorrents[articleName].torrent)
+        return
+      }
+
       var files = []
       var fetched = {
         title: '',
@@ -91,7 +125,6 @@ export class P2Wiki {
         media: [],
         mediaCount: 0
       }
-      articleName = encodeURIComponent(articleName)
 
       var ifCompletedMakeTorrent = () => {
         if (fetched.article && fetched.media.length === fetched.mediaCount) {
@@ -99,6 +132,17 @@ export class P2Wiki {
             announceList: [$this.announceURLs],
             name: fetched.title
           }, (torrent) => {
+            $this.seedingTorrents[articleName] = {
+              lastActive: new Date(),
+              torrent: torrent
+            }
+
+            torrent.on('upload', () => {
+              $this.seedingTorrents[articleName].lastActive = new Date()
+            })
+
+            debug(`Started seeding article '${articleName}' : ${torrent.infoHash}`)
+
             resolve(torrent)
           })
         }
@@ -167,7 +211,9 @@ export class P2Wiki {
     }
 
     const $this = this
-    var peer, responseInfoHashes = []
+
+    var peer
+    var responseInfoHashes = []
 
     for (var key in this.proxyPeers) {
       peer = this.proxyPeers[key]
@@ -189,7 +235,7 @@ export class P2Wiki {
   checkConsensus (infoHashes) {
     var infoHashesFrequency = {}
     var infoHash
-    
+
     for (var key in infoHashes) {
       infoHash = infoHashes[key]
       if (!infoHashesFrequency[infoHash]) {
@@ -205,9 +251,7 @@ export class P2Wiki {
   }
 
   downloadTorrent (infoHash, callback) {
-    this.wt.add(infoHash, {
-      announce: this.announceURLs
-    }, (torrent) => {
+    var onTorrent = (torrent) => {
       var article = {
         title: '',
         text: null,
@@ -224,6 +268,14 @@ export class P2Wiki {
       })
 
       callback(article)
-    })
+    }
+
+    if (this.wt.get(infoHash)) {
+      onTorrent(this.wt.get(infoHash))
+    } else {
+      this.wt.add(infoHash, {
+        announce: this.announceURLs
+      }, onTorrent)
+    }
   }
 }
