@@ -1,5 +1,17 @@
 import React, { Component } from 'react'
 import { P2Wiki } from './p2wiki'
+import { withRouter } from 'react-router-dom'
+
+const ProxyButton = withRouter(({ history }) => (
+  <button
+    className="button is-success is-outlined"
+    style={{marginBottom: '10px'}}
+    type='button'
+    onClick={() => { history.push('/proxy') }}
+  >
+    Be a Proxy Peer
+  </button>
+))
 
 class Searchbar extends Component {
   constructor (props) {
@@ -13,7 +25,7 @@ class Searchbar extends Component {
       title: '',
       query: '',
       result: '',
-      beAProxy: false
+      loading: false,
     }
 
     this.media = {}
@@ -30,13 +42,7 @@ class Searchbar extends Component {
     if (window.location.hostname === 'localhost') { announceURLs = ['ws://localhost:5000'] }
 
     this.p2wiki = new P2Wiki(announceURLs)
-
-    if (window.localStorage.getItem('beAProxy') === 'true') {
-      this.state.beAProxy = true
-      this.p2wiki.startProxy()
-    } else {
-      this.p2wiki.startClient()
-    }
+    this.p2wiki.startClient()
 
     var that = this
     var url = document.location.pathname
@@ -69,7 +75,7 @@ class Searchbar extends Component {
           }
         ) === false
       ) {
-        console.log('nopeer, retrying in 3 seconds')
+        console.log('no peer, retrying in 3 seconds')
         clearInterval(this.retryInterval)
         this.retryInterval = setTimeout(this.getFromWiki, 3000)
       }
@@ -84,16 +90,9 @@ class Searchbar extends Component {
   };
 
   handleChange (e) {
-    const value =
-      e.target.type === 'checkbox' ? e.target.checked : e.target.value
     this.setState({
-      [e.target.name]: value
+      [e.target.name]: e.target.value
     })
-
-    if (e.target.name === 'beAProxy') {
-      window.localStorage.setItem('beAProxy', value)
-      window.location.reload()
-    }
   }
 
   urloli (e) {
@@ -125,15 +124,7 @@ class Searchbar extends Component {
     return (
       <div>
         <form onSubmit={this.handleSubmit}>
-          <label style={{ paddingBottom:'15px' }} className='checkbox'>
-            <input
-              type='checkbox'
-              onChange={this.handleChange}
-              name='beAProxy'
-              checked={this.state.beAProxy}
-            />
-            <span style={{ marginLeft: '5px' }}>Be a Proxy Peer</span>
-          </label>
+          <ProxyButton />
           <div className='field'>
             <div style={{textAlign: 'center'}} className='control'>
               <input
