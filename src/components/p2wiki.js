@@ -43,11 +43,17 @@ export class P2Wiki {
       } else {
         try {
           msg = JSON.parse(msg)
+          var articleName = encodeURIComponent(msg.articleName)
 
-          console.log('Got request for article ' + msg.articleName)
+          console.log('Got request for article ' + articleName)
 
           $this.makeArticleTorrent(msg.articleName).then((torrent) => {
             peer.respond(torrent.infoHash)
+          }).catch((error) => {
+            console.log('Torrent creation failed : ' + error)
+
+            // Torrent creation failed
+            delete $this.seedingTorrents[articleName]
           })
         } catch (e) {
           console.log(e)
@@ -64,7 +70,7 @@ export class P2Wiki {
           var torrentInfo
           for (var key in $this.seedingTorrents) {
             torrentInfo = $this.seedingTorrents[key]
-            if (timeNow - torrentInfo.lastActive > minutes) {
+            if (torrentInfo.lastActive && timeNow - torrentInfo.lastActive > minutes) {
               torrentInfo.torrent.destroy()
             }
           }
@@ -114,9 +120,14 @@ export class P2Wiki {
       articleName = encodeURIComponent(articleName)
 
       if ($this.seedingTorrents[articleName]) {
-        resolve($this.seedingTorrents[articleName].torrent)
+        if ($this.seedingTorrents[articleName].torrent) {
+          resolve($this.seedingTorrents[articleName].torrent)
+        }
         return
       }
+
+      // Started making torrent
+      $this.seedingTorrents[articleName] = {}
 
       var files = []
       var fetched = {
