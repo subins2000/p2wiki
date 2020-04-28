@@ -1,16 +1,14 @@
-import React from 'react'
-// import axios from 'axios';
-// import { Label } from "@rebass/forms";
-// import { Box, Button } from "rebass"
+import React, { Component } from 'react'
 import { P2Wiki } from './p2wiki'
 
-// class Searchbar = (props) => {
-class Searchbar extends React.Component {
+class Searchbar extends Component {
   constructor (props) {
-    super(props)
+    super(props);
+
     this.handleChange = this.handleChange.bind(this)
     this.handleSubmit = this.handleSubmit.bind(this)
     this.getFromWiki = this.getFromWiki.bind(this)
+
     this.state = {
       title: '',
       query: '',
@@ -35,7 +33,6 @@ class Searchbar extends React.Component {
 
     if (window.localStorage.getItem('beAProxy') === 'true') {
       this.state.beAProxy = true
-
       this.p2wiki.startProxy()
     } else {
       this.p2wiki.startClient()
@@ -84,15 +81,6 @@ class Searchbar extends React.Component {
     console.log(this.state.query)
 
     this.getFromWiki()
-    /**
-        axios.get(`http://en.wikipedia.org/w/api.php?action=parse&format=json&page=${this.state.query}&prop=query&formatversion=2`).then(res => {
-            console.log(res.data)
-            this.setState({
-                title: res.data.parse.title,
-                result: res.data.parse.query,
-            });
-        }).catch((err)=>{alert("Not Found- Try with a more Specific Title")});
-    */
   };
 
   handleChange (e) {
@@ -137,7 +125,7 @@ class Searchbar extends React.Component {
     return (
       <div>
         <form onSubmit={this.handleSubmit}>
-          <label className='checkbox'>
+          <label style={{ paddingBottom:'15px' }} className='checkbox'>
             <input
               type='checkbox'
               onChange={this.handleChange}
@@ -147,7 +135,7 @@ class Searchbar extends React.Component {
             <span style={{ marginLeft: '5px' }}>Be a Proxy Peer</span>
           </label>
           <div className='field'>
-            <div className='control'>
+            <div style={{textAlign: 'center'}} className='control'>
               <input
                 className='input is-rounded'
                 id='query'
