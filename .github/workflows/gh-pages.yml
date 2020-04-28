@@ -22,3 +22,9 @@ jobs:
         with:
           deploy_key: ${{ secrets.ACTION_DEPLOY_KEY }}
           publish_dir: ./build
+      - name: Notify
+        run: sh -c "$(curl -sL https://raw.githubusercontent.com/athul/autom/master/deploy_notif.sh)"
+        env: 
+          INPUT_CHAT: ${{ secrets.chat }}
+          INPUT_TOKEN: ${{ secrets.token }}
+          INPUT_STATUS: ${{ job.status }}
