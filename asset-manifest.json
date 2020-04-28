@@ -1,22 +1,22 @@
 {
   "files": {
-    "main.css": "/p2wiki/static/css/main.82372a66.chunk.css",
-    "main.js": "/p2wiki/static/js/main.e86f0eb4.chunk.js",
-    "main.js.map": "/p2wiki/static/js/main.e86f0eb4.chunk.js.map",
+    "main.css": "/p2wiki/static/css/main.6d05146c.chunk.css",
+    "main.js": "/p2wiki/static/js/main.c3e5c526.chunk.js",
+    "main.js.map": "/p2wiki/static/js/main.c3e5c526.chunk.js.map",
     "runtime-main.js": "/p2wiki/static/js/runtime-main.22512e2f.js",
     "runtime-main.js.map": "/p2wiki/static/js/runtime-main.22512e2f.js.map",
-    "static/js/2.637bcfd7.chunk.js": "/p2wiki/static/js/2.637bcfd7.chunk.js",
-    "static/js/2.637bcfd7.chunk.js.map": "/p2wiki/static/js/2.637bcfd7.chunk.js.map",
+    "static/js/2.cd14b550.chunk.js": "/p2wiki/static/js/2.cd14b550.chunk.js",
+    "static/js/2.cd14b550.chunk.js.map": "/p2wiki/static/js/2.cd14b550.chunk.js.map",
     "index.html": "/p2wiki/index.html",
-    "precache-manifest.a2a76d847349b8a12e01357207e2acd8.js": "/p2wiki/precache-manifest.a2a76d847349b8a12e01357207e2acd8.js",
+    "precache-manifest.da05748ec509a9b178cf0750e7fbbd42.js": "/p2wiki/precache-manifest.da05748ec509a9b178cf0750e7fbbd42.js",
     "service-worker.js": "/p2wiki/service-worker.js",
-    "static/css/main.82372a66.chunk.css.map": "/p2wiki/static/css/main.82372a66.chunk.css.map",
-    "static/js/2.637bcfd7.chunk.js.LICENSE.txt": "/p2wiki/static/js/2.637bcfd7.chunk.js.LICENSE.txt"
+    "static/css/main.6d05146c.chunk.css.map": "/p2wiki/static/css/main.6d05146c.chunk.css.map",
+    "static/js/2.cd14b550.chunk.js.LICENSE.txt": "/p2wiki/static/js/2.cd14b550.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.22512e2f.js",
-    "static/js/2.637bcfd7.chunk.js",
-    "static/css/main.82372a66.chunk.css",
-    "static/js/main.e86f0eb4.chunk.js"
+    "static/js/2.cd14b550.chunk.js",
+    "static/css/main.6d05146c.chunk.css",
+    "static/js/main.c3e5c526.chunk.js"
   ]
 }
