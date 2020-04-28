@@ -1,8 +1,8 @@
 import React from "react";
 import { P2Wiki } from "./p2wiki";
 
-export default function ProxyPage() {
-  var announceURLs = [
+const ProxyPage = () => {
+  let announceURLs = [
     "wss://tracker.openwebtorrent.com",
     "wss://tracker.sloppyta.co:443/announce",
     "wss://tracker.novage.com.ua:443/announce",
@@ -21,3 +21,5 @@ export default function ProxyPage() {
     </div>
   );
 }
+
+export default ProxyPage;

@@ -1,20 +1,6 @@
-import React, { Component } from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { P2Wiki } from "./p2wiki";
 import { withRouter } from "react-router-dom";
-
-const ProxyButton = withRouter(({ history }) => (
-  <button
-    className="button is-success is-outlined"
-    style={{ marginBottom: "10px" }}
-    type="button"
-    onClick={() => {
-      history.push("/proxy");
-    }}
-  >
-    Be a Proxy Peer
-  </button>
-));
 
 const Search = () => {
   let [query, setQuery] = useState("");
@@ -23,20 +9,17 @@ const Search = () => {
 
   let media = {};
 
-  var announceURLs = [
+  let announceURLs = [
     "wss://tracker.openwebtorrent.com",
     "wss://tracker.sloppyta.co:443/announce",
     "wss://tracker.novage.com.ua:443/announce",
     "wss://tracker.btorrent.xyz:443/announce",
   ];
-
   if (window.location.hostname === "localhost") {
     announceURLs = ["ws://localhost:5000"];
   }
 
   let p2wiki = new P2Wiki(announceURLs);
-  p2wiki.startClient();
-
   let retryInterval = null;
 
   let getFromWiki = () => {
@@ -63,6 +46,7 @@ const Search = () => {
   let handleSubmit = (e) => {
     e.preventDefault();
     console.log(query);
+    p2wiki.startClient();
     getFromWiki();
   };
 
@@ -115,5 +99,18 @@ const Search = () => {
     </div>
   );
 };
+
+const ProxyButton = withRouter(({ history }) => (
+  <button
+    className="button is-success is-outlined"
+    style={{ marginBottom: "10px" }}
+    type="button"
+    onClick={() => {
+      history.push("/proxy");
+    }}
+  >
+    Be a Proxy Peer
+  </button>
+));
 
 export default Search;
