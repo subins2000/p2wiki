@@ -1,25 +1,12 @@
 import React, { useState } from "react";
-import { P2Wiki } from "../../common/p2wiki";
 import { withRouter } from "react-router-dom";
 
-const Search = () => {
+const Search = ({ p2wiki }) => {
   let [query, setQuery] = useState("");
   let [title, setTitle] = useState("");
   let [result, setResult] = useState("");
 
   let media = {};
-
-  let announceURLs = [
-    "wss://tracker.openwebtorrent.com",
-    "wss://tracker.sloppyta.co:443/announce",
-    "wss://tracker.novage.com.ua:443/announce",
-    "wss://tracker.btorrent.xyz:443/announce",
-  ];
-  if (window.location.hostname === "localhost") {
-    announceURLs = ["ws://localhost:5000"];
-  }
-
-  let p2wiki = new P2Wiki(announceURLs);
   let retryInterval = null;
 
   let getFromWiki = () => {
@@ -46,12 +33,10 @@ const Search = () => {
   let handleSubmit = (e) => {
     e.preventDefault();
     console.log(query);
-    p2wiki.startClient();
     getFromWiki();
   };
 
   let handleChange = (e) => {
-    console.log(e.target.value);
     setQuery(e.target.value);
   };
 
