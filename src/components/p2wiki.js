@@ -1,5 +1,5 @@
 import axios from 'axios'
-import P2PT from './p2pt'
+import { P2PT } from './p2pt'
 
 const WebTorrent = require('webtorrent')
 const parallel = require('run-parallel')
@@ -15,7 +15,7 @@ const TORRENT_OK_CONSENSUS_COUNT = 1
  * For both client & proxy peers
  * How many minutes should an article torrent be kept seeding if nobody is downloading it
  */
-const TORRENT_REMOVE_TIMEOUT = 0.25
+const TORRENT_REMOVE_TIMEOUT = 2
 
 export class P2Wiki {
   constructor (announceURLs) {

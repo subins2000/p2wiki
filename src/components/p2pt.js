@@ -20,7 +20,7 @@ const JSON_MESSAGE_IDENTIFIER = 'p'
  */
 const MAX_MESSAGE_LENGTH = 16000
 
-class P2PT extends EventEmitter {
+export class P2PT extends EventEmitter {
   /**
    *
    * @param array announceURLs List of announce tracker URLs
@@ -288,5 +288,3 @@ class P2PT extends EventEmitter {
     }
   }
 }
-
-module.exports = P2PT
