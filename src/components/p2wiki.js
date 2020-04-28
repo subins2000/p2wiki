@@ -1,8 +1,13 @@
 import axios from 'axios'
-import P2PT from 'p2pt'
+import P2PT from './p2pt'
 
 const WebTorrent = require('webtorrent')
 const debug = require('debug')('p2wiki')
+
+/**
+ * How many peers should return the same infoHash to start downloading the torrent ?
+ */
+const TORRENT_OK_CONSENSUS_COUNT = 1
 
 export class P2Wiki {
   constructor (announceURLs) {
@@ -48,16 +53,21 @@ export class P2Wiki {
         peer,
         'c'
       ).then(([peer, response]) => {
+        console.log(peer.id)
         if (response === 'p') {
-          $this.proxyPeers[peer.id] = peer
-          $this.proxyPeersID.push(peer.id)
+          if ($this.proxyPeers[peer.id]) {
+            peer.destroy()
+          } else {
+            $this.proxyPeers[peer.id] = peer
+            $this.proxyPeersID.push(peer.id)
+          }
         }
       })
     })
 
     this.p2pt.on('peerclose', (peerID) => {
-      delete $this.proxyPeers[peerID]
-      delete $this.proxyPeersID[this.proxyPeersID.indexOf(peerID)]
+      //delete $this.proxyPeers[peerID]
+      //delete $this.proxyPeersID[this.proxyPeersID.indexOf(peerID)]
     })
     this.p2pt.start()
   }
@@ -151,37 +161,69 @@ export class P2Wiki {
 
   requestArticle (articleName, callback, errorCallback) {
     this.p2pt.requestMorePeers()
-    var peer = this.getAProxyPeer()
 
-    if (!peer) {
+    if (this.proxyPeers.length === 0) {
       return false
     }
 
     const $this = this
-    this.p2pt.send(peer, JSON.stringify({
-      articleName: articleName
-    })).then(([peer, response]) => {
-      // response will be torrent infohash
-      $this.wt.add(response, {
-        announce: $this.announceURLs
-      }, (torrent) => {
-        var article = {
-          title: '',
-          text: null,
-          media: {}
+    var peer, responseInfoHashes = []
+
+    for (var key in this.proxyPeers) {
+      peer = this.proxyPeers[key]
+
+      this.p2pt.send(peer, JSON.stringify({
+        articleName: articleName
+      })).then(([peer, response]) => {
+        // response will be torrent infohash
+        responseInfoHashes.push(response)
+        var infoHash = $this.checkConsensus(responseInfoHashes)
+
+        if (infoHash) {
+          $this.downloadTorrent(infoHash, callback)
         }
-
-        torrent.files.forEach(file => {
-          if (file.name === 'article.html') {
-            article.title = torrent.name
-            article.text = file
-          } else {
-            article.media[file.name] = file
-          }
-        })
-
-        callback(article)
       })
+    }
+  }
+
+  checkConsensus (infoHashes) {
+    var infoHashesFrequency = {}
+    var infoHash
+    
+    for (var key in infoHashes) {
+      infoHash = infoHashes[key]
+      if (!infoHashesFrequency[infoHash]) {
+        infoHashesFrequency[infoHash] = 0
+      }
+      infoHashesFrequency[infoHash]++
+
+      if (infoHashesFrequency[infoHash] >= TORRENT_OK_CONSENSUS_COUNT) {
+        return infoHash
+      }
+    }
+    return false
+  }
+
+  downloadTorrent (infoHash, callback) {
+    this.wt.add(infoHash, {
+      announce: this.announceURLs
+    }, (torrent) => {
+      var article = {
+        title: '',
+        text: null,
+        media: {}
+      }
+
+      torrent.files.forEach(file => {
+        if (file.name === 'article.html') {
+          article.title = torrent.name
+          article.text = file
+        } else {
+          article.media[file.name] = file
+        }
+      })
+
+      callback(article)
     })
   }
 }
