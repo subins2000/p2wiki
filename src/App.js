@@ -1,8 +1,8 @@
 import React from "react";
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
 
-import ClientPage from "./components/ClientPage";
-import ProxyPage from "./components/ProxyPage";
+import ClientPage from "./pages/ClientPage/ClientPage";
+import ProxyPage from "./pages/ProxyPage/ProxyPage";
 
 import "./App.scss";
 

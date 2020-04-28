@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { P2Wiki } from "./p2wiki";
+import React, { useState } from "react";
+import { P2Wiki } from "../../common/p2wiki";
 import { withRouter } from "react-router-dom";
 
 const Search = () => {

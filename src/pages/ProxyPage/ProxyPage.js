@@ -1,5 +1,5 @@
 import React from "react";
-import { P2Wiki } from "./p2wiki";
+import { P2Wiki } from "../../common/p2wiki";
 
 const ProxyPage = () => {
   let announceURLs = [
