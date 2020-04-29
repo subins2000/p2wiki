@@ -4,10 +4,20 @@ import { withRouter } from "react-router-dom";
 import SearchForm from "./SearchForm";
 import Result from './Result';
 
+let htmlResult = null
+let resultChanged = false
+
 const Search = ({ p2wiki }) => {
   let [query, setQuery] = useState("");
   let [title, setTitle] = useState("");
-  let [htmlResult, setHtmlResult] = useState({__html: ''}); 
+
+  let setResult = elem => {
+    if (elem && resultChanged && htmlResult) {
+      elem.innerHTML = ''
+      elem.appendChild(htmlResult)
+      resultChanged = false
+    }
+  };
 
   let media = {};
   let retryInterval = null;
@@ -18,8 +28,8 @@ const Search = ({ p2wiki }) => {
         p2wiki.requestArticle(query, function (res) {
           media = res.media;
           res.text.getBuffer((error, buffer) => {
-            setTitle(res.Title);
             createMarkup(buffer.toString());
+            setTitle(res.Title);
             if (error) {
               console.log(error);
             }
@@ -43,18 +53,19 @@ const Search = ({ p2wiki }) => {
       filename = new URL(images[i].href).pathname.slice(6);
 
       images[i].firstChild.src = "";
+      images[i].firstChild.srcset = "";
 
       if (media[filename]) {
         media[filename].renderTo(images[i].firstChild);
       }
     }
 
-    setHtmlResult({ __html: html.body.innerHTML });
+    resultChanged = true
+    htmlResult = html.body.firstChild
   };
 
   let handleSubmit = (e) => {
     e.preventDefault();
-    console.log(query);
     getFromWiki();
   };
 
@@ -66,7 +77,10 @@ const Search = ({ p2wiki }) => {
     <>
       <ProxyButton />
       <SearchForm query={query} handleChange={handleChange} handleSubmit={handleSubmit} />
-      <Result title={title} htmlResult={htmlResult} />
+      <div className="container mx-auto">
+        <h1 className="title text-4xl">{title}</h1>
+        <Result ref={setResult} />
+      </div>
     </>
   );
 };

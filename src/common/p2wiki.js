@@ -173,14 +173,24 @@ export class P2Wiki {
         reject(error)
       })
 
-      var addMedia = (title, scale, url) => {
+      var addMedia = (title, url) => {
         axios({
           method: 'get',
           url: url,
           responseType: 'blob'
         }).then(function (response) {
           var filename = title
-          var file = new window.File([response.data], filename)
+          var file = new window.File([response.data], filename, { type: response.headers['content-type'] })
+
+          const reader = new FileReader();
+          reader.addEventListener("load", function () {
+            // convert image file to base64 string
+            var img = document.createElement('img')
+            img.src = reader.result
+            console.log(response)
+            document.body.appendChild(img)
+          }, false);
+          reader.readAsDataURL(file);
 
           files.push(file)
           fetched.media.push(filename)
@@ -203,7 +213,7 @@ export class P2Wiki {
             continue
           }
 
-          addMedia(item.title, item.srcset[0].scale, item.srcset[0].src)
+          addMedia(item.title, item.srcset[0].src)
           fetched.mediaCount++
         }
 
