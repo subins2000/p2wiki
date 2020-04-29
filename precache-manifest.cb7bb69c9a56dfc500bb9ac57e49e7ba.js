@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "d8c234ab84b4ff370454f70e01afd09e",
+    "revision": "a2bc01dc27f7aeacbdb8a56af5685135",
     "url": "/p2wiki/index.html"
   },
   {
-    "revision": "b06f52c911019d7d6812",
+    "revision": "01b215e635bdc2d4194d",
     "url": "/p2wiki/static/css/main.ec0ca34a.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/p2wiki/static/js/2.f78b7a0d.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "b06f52c911019d7d6812",
-    "url": "/p2wiki/static/js/main.6d837ba5.chunk.js"
+    "revision": "01b215e635bdc2d4194d",
+    "url": "/p2wiki/static/js/main.d4232175.chunk.js"
   },
   {
     "revision": "e69acd40e15c5421bb00",
