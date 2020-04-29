@@ -50,7 +50,7 @@ const Search = ({ p2wiki }) => {
     const images = html.querySelectorAll("a[class='image']");
     var filename;
     for (let i = 0; i < images.length; i++) {
-      filename = new URL(images[i].href).pathname.slice(6);
+      filename = decodeURIComponent(new URL(images[i].href).pathname.slice(6));
 
       images[i].firstChild.src = "";
       images[i].firstChild.srcset = "";
