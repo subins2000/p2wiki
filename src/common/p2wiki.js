@@ -182,16 +182,6 @@ export class P2Wiki {
           var filename = title
           var file = new window.File([response.data], filename, { type: response.headers['content-type'] })
 
-          const reader = new FileReader();
-          reader.addEventListener("load", function () {
-            // convert image file to base64 string
-            var img = document.createElement('img')
-            img.src = reader.result
-            console.log(response)
-            document.body.appendChild(img)
-          }, false);
-          reader.readAsDataURL(file);
-
           files.push(file)
           fetched.media.push(filename)
 

@@ -56,6 +56,14 @@ const Search = ({ p2wiki }) => {
       images[i].firstChild.srcset = "";
 
       if (media[filename]) {
+        /**
+         * Wikimedia Commons convert SVG to PNG in articles
+         * renderTo function uses extension for detecting file type : https://github.com/feross/render-media/issues/33
+         */
+        if (filename.substr(-4, 4) === '.svg') {
+          media[filename].name += '.png'
+        }
+
         media[filename].renderTo(images[i].firstChild);
       }
     }
