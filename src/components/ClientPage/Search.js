@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { withRouter } from "react-router-dom";
 
+import SearchForm from "./SearchForm";
+import Result from './Result';
+
 const Search = ({ p2wiki }) => {
   let [query, setQuery] = useState("");
   let [title, setTitle] = useState("");
-  let [result, setResult] = useState("");
+  let [htmlResult, setHtmlResult] = useState({__html: ''}); 
 
   let media = {};
   let retryInterval = null;
@@ -16,7 +19,7 @@ const Search = ({ p2wiki }) => {
           media = res.media;
           res.text.getBuffer((error, buffer) => {
             setTitle(res.Title);
-            setResult(buffer.toString());
+            createMarkup(buffer.toString());
             if (error) {
               console.log(error);
             }
@@ -28,16 +31,6 @@ const Search = ({ p2wiki }) => {
         retryInterval = setTimeout(getFromWiki, 3000);
       }
     }
-  };
-
-  let handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(query);
-    getFromWiki();
-  };
-
-  let handleChange = (e) => {
-    setQuery(e.target.value);
   };
 
   let createMarkup = (html) => {
@@ -56,32 +49,25 @@ const Search = ({ p2wiki }) => {
       }
     }
 
-    return { __html: html.body.innerHTML };
+    setHtmlResult({ __html: html.body.innerHTML });
+  };
+
+  let handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(query);
+    getFromWiki();
+  };
+
+  let handleChange = (e) => {
+    setQuery(e.target.value);
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <ProxyButton />
-        <div className="field">
-          <div style={{ textAlign: "center" }} className="control">
-            <input
-              className="input is-rounded"
-              id="query"
-              type="Text"
-              placeholder="🔍 Search for an article"
-              onChange={handleChange}
-              name="query"
-              value={query}
-            />
-          </div>
-        </div>
-      </form>
-      <div className="container mx-auto">
-        <h1 className="title text-4xl">{title}</h1>
-        <div dangerouslySetInnerHTML={createMarkup(result)} />
-      </div>
-    </div>
+    <>
+      <ProxyButton />
+      <SearchForm query={query} handleChange={handleChange} handleSubmit={handleSubmit} />
+      <Result title={title} htmlResult={htmlResult} />
+    </>
   );
 };
 
