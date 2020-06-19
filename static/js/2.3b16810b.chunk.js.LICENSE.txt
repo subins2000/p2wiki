@@ -11,7 +11,19 @@ object-assign
  * @license  MIT
  */
 
+/*! create-torrent. MIT License. WebTorrent LLC <https://webtorrent.io/opensource> */
+
 /*! https://mths.be/punycode v1.4.1 by @mathias */
+
+/*! parse-torrent. MIT License. WebTorrent LLC <https://webtorrent.io/opensource> */
+
+/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+/*! render-media. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+/*! stream-to-blob-url. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+/*! stream-to-blob. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
 /** @license React v0.19.1
  * scheduler.production.min.js
