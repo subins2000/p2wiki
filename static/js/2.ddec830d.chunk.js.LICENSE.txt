@@ -15,15 +15,21 @@ object-assign
 
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 
+/*! magnet-uri. MIT License. WebTorrent LLC <https://webtorrent.io/opensource> */
+
 /*! parse-torrent. MIT License. WebTorrent LLC <https://webtorrent.io/opensource> */
 
 /*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
 /*! render-media. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
+/*! simple-concat. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
 /*! stream-to-blob-url. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
 /*! stream-to-blob. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+/*! stream-with-known-length-to-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
 /** @license React v0.19.1
  * scheduler.production.min.js
